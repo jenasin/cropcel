@@ -98,6 +98,10 @@ class DataManager:
         """Načte vztahy uživatel-podnik"""
         return self.load_csv('userpodniky.csv')
 
+    def get_odpisy(self) -> pd.DataFrame:
+        """Načte odpisy (prodeje ze skladu)"""
+        return self.load_csv('odpisy.csv')
+
     def filter_by_business(self, df: pd.DataFrame, business_ids: List[int]) -> pd.DataFrame:
         """
         Filtruje data podle ID podniků

@@ -157,6 +157,9 @@ def show_main_content():
     elif selected_page == 'Sběrné srážky':
         from page_modules import sbernasrazky
         sbernasrazky.show(get_data_manager(), st.session_state.user, get_auth_manager())
+    elif selected_page == 'Odpisy':
+        from page_modules import odpisy
+        odpisy.show(get_data_manager(), st.session_state.user, get_auth_manager())
     elif selected_page == 'Souhrn plodin':
         from page_modules import sumplodiny
         sumplodiny.show(get_data_manager(), st.session_state.user, get_auth_manager())
@@ -166,6 +169,9 @@ def show_main_content():
     elif selected_page == 'Přístup k podnikům':
         from page_modules import userpodniky
         userpodniky.show(get_data_manager(), st.session_state.user, get_auth_manager())
+    elif selected_page == 'Statistiky':
+        from page_modules import statistiky
+        statistiky.show(get_data_manager(), st.session_state.user, get_auth_manager())
 
 
 def main():

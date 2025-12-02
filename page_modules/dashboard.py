@@ -396,19 +396,24 @@ def show(data_manager, user):
                     # Seřadit roky
                     sorted_years = sorted(pivot_vymera.columns)
 
-                    tab1, tab2, tab3 = st.tabs(["📐 Výměra (ha)", "📦 Čistá produkce (t)", "📈 Čistý výnos (t/ha)"])
+                    # Vytvořit jednu velkou tabulku s multi-level headers
+                    # Přejmenovat sloupce s prefixem pro každou metriku
+                    vymera_cols = {y: f"Výměra (ha)|{int(y)}" for y in sorted_years}
+                    vynos_cols = {y: f"Výnos (t/ha)|{int(y)}" for y in sorted_years}
+                    produkce_cols = {y: f"Produkce (t)|{int(y)}" for y in sorted_years}
 
-                    with tab1:
-                        display_vymera = pivot_vymera[sorted_years].round(2)
-                        display_vymera.columns = [str(int(y)) for y in display_vymera.columns]
-                        st.dataframe(display_vymera, use_container_width=True)
+                    df_vymera = pivot_vymera[sorted_years].round(2).rename(columns=vymera_cols)
+                    df_vynos = pivot_vynos[sorted_years].round(2).rename(columns=vynos_cols)
+                    df_produkce = pivot_produkce[sorted_years].round(2).rename(columns=produkce_cols)
 
-                    with tab2:
-                        display_produkce = pivot_produkce[sorted_years].round(2)
-                        display_produkce.columns = [str(int(y)) for y in display_produkce.columns]
-                        st.dataframe(display_produkce, use_container_width=True)
+                    # Spojit všechny tabulky
+                    combined_df = pd.concat([df_vymera, df_vynos, df_produkce], axis=1)
 
-                    with tab3:
-                        display_vynos = pivot_vynos[sorted_years].round(2)
-                        display_vynos.columns = [str(int(y)) for y in display_vynos.columns]
-                        st.dataframe(display_vynos, use_container_width=True)
+                    # Vytvořit MultiIndex sloupce
+                    new_columns = []
+                    for col in combined_df.columns:
+                        parts = col.split('|')
+                        new_columns.append((parts[0], parts[1]))
+                    combined_df.columns = pd.MultiIndex.from_tuples(new_columns)
+
+                    st.dataframe(combined_df, use_container_width=True)
