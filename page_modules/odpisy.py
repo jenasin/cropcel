@@ -400,6 +400,10 @@ def show(data_manager, user, auth_manager):
 
         display_df_edit = display_df[edit_cols].copy().reset_index(drop=True)
 
+        # Převést datum_smlouvy na datetime pro DateColumn
+        if 'datum_smlouvy' in display_df_edit.columns:
+            display_df_edit['datum_smlouvy'] = pd.to_datetime(display_df_edit['datum_smlouvy'], errors='coerce')
+
         # Editovatelná tabulka
         edited_df = st.data_editor(
             display_df_edit,
