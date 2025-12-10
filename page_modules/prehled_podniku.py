@@ -26,7 +26,7 @@ def render(data_manager, user_businesses):
     businesses = data_manager.get_businesses()
     pozemky = data_manager.get_pozemky()
     typpozemek = data_manager.get_typpozemek()
-    sumplodiny = data_manager.get_sumplodiny()
+    fields = data_manager.get_fields()
     crops = data_manager.get_crops()
     sbernasrazky = data_manager.get_sbernasrazky()
     sbernamista = data_manager.get_sbernamista()
@@ -55,14 +55,14 @@ def render(data_manager, user_businesses):
     podnik_name = podnik_options[selected_podnik]
     st.subheader(f"Podnik: {podnik_name}")
 
-    # Výběr roku
+    # Výběr roku - z pozemků a polí
     available_years = []
     if not pozemky.empty and 'Year' in pozemky.columns:
         pozemky_years = pozemky[pozemky['PodnikID'] == selected_podnik]['Year'].dropna().unique()
         available_years.extend(pozemky_years)
-    if not sumplodiny.empty and 'Year' in sumplodiny.columns:
-        sum_years = sumplodiny[sumplodiny['PodnikID'] == selected_podnik]['Year'].dropna().unique()
-        available_years.extend(sum_years)
+    if not fields.empty and 'rok_sklizne' in fields.columns:
+        fields_years = fields[fields['podnik_id'] == selected_podnik]['rok_sklizne'].dropna().unique()
+        available_years.extend(fields_years)
 
     available_years = sorted(set([int(y) for y in available_years if pd.notna(y)]))
 
@@ -128,36 +128,49 @@ def render(data_manager, user_businesses):
     # ==================== SEKCE 2: SUMÁRNÍ LIST PLODIN ====================
     st.subheader(f"Sumární list plodin - {selected_year}")
 
-    # Filtrovat sumplodiny pro vybraný podnik a rok
-    podnik_sumplodiny = sumplodiny[(sumplodiny['PodnikID'] == selected_podnik) & (sumplodiny['Year'] == selected_year)]
+    # Filtrovat pole pro vybraný podnik a rok
+    podnik_fields = fields[(fields['podnik_id'] == selected_podnik) & (fields['rok_sklizne'] == selected_year)]
 
-    if not podnik_sumplodiny.empty and not crops.empty:
+    if not podnik_fields.empty and not crops.empty:
         # Sloučit s názvy plodin
-        podnik_sumplodiny = podnik_sumplodiny.merge(
+        podnik_fields = podnik_fields.merge(
             crops[['id', 'nazev']],
-            left_on='PlodinaID',
+            left_on='plodina_id',
             right_on='id',
             how='left',
             suffixes=('', '_plodina')
         )
-        podnik_sumplodiny['plodina_nazev'] = podnik_sumplodiny['nazev'].fillna('Neznámá')
+        podnik_fields['plodina_nazev'] = podnik_fields['nazev'].fillna('Neznámá')
 
         # Agregace podle plodin
-        plodiny_stats = podnik_sumplodiny.groupby('plodina_nazev').agg({
-            'CistaVaha': 'sum'
+        plodiny_stats = podnik_fields.groupby('plodina_nazev').agg({
+            'cista_vaha': 'sum',
+            'vymera': 'sum'
         }).reset_index()
-        plodiny_stats.columns = ['Plodina', 'Čistá váha (t)']
+        plodiny_stats.columns = ['Plodina', 'Čistá váha (t)', 'Výměra (ha)']
+        plodiny_stats['Výnos (t/ha)'] = plodiny_stats['Čistá váha (t)'] / plodiny_stats['Výměra (ha)']
         plodiny_stats = plodiny_stats.sort_values('Čistá váha (t)', ascending=False)
 
         # Tabulka
         st.markdown("**Přehled plodin**")
         plodiny_stats_display = plodiny_stats.copy()
         plodiny_stats_display['Čistá váha (t)'] = plodiny_stats_display['Čistá váha (t)'].round(2)
+        plodiny_stats_display['Výměra (ha)'] = plodiny_stats_display['Výměra (ha)'].round(2)
+        plodiny_stats_display['Výnos (t/ha)'] = plodiny_stats_display['Výnos (t/ha)'].round(2)
         st.dataframe(plodiny_stats_display, use_container_width=True, hide_index=True)
 
-        # Celková produkce
+        # Metriky
+        col1, col2, col3 = st.columns(3)
         total_production = plodiny_stats['Čistá váha (t)'].sum()
-        st.metric("Celková produkce", f"{total_production:.2f} t")
+        total_area = plodiny_stats['Výměra (ha)'].sum()
+        avg_yield = total_production / total_area if total_area > 0 else 0
+
+        with col1:
+            st.metric("Celková produkce", f"{total_production:.2f} t")
+        with col2:
+            st.metric("Celková výměra", f"{total_area:.2f} ha")
+        with col3:
+            st.metric("Průměrný výnos", f"{avg_yield:.2f} t/ha")
 
         st.divider()
 
@@ -191,10 +204,13 @@ def render(data_manager, user_businesses):
     # ==================== SEKCE 4: SBĚRNÉ SRÁŽKY ====================
     st.subheader("Sběrné srážky - všechny podniky")
 
-    if not sbernasrazky.empty and not businesses.empty:
+    # Načíst všechny podniky znovu (bez filtrování)
+    all_businesses = data_manager.get_businesses()
+
+    if not sbernasrazky.empty and not all_businesses.empty:
         # Sloučit srážky s podniky
         srazky_with_podnik = sbernasrazky.merge(
-            businesses[['id', 'nazev']],
+            all_businesses[['id', 'nazev']],
             left_on='PodnikID',
             right_on='id',
             how='left',
