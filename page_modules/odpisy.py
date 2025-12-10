@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
+from io import BytesIO
 
 
 def show(data_manager, user, auth_manager):
@@ -163,46 +164,146 @@ def show(data_manager, user, auth_manager):
         else:
             st.info("Žádná produkce pro tento rok")
 
-    # === GRAF: Tržby ===
+    # === GRAF: Vývoj v čase ===
     if not odpisy_filtered.empty:
-        st.subheader("💰 Přehled tržeb")
+        st.subheader("📈 Vývoj prodejů v čase")
 
+        # Připravit data - seřadit podle data a spočítat kumulativní součty
+        odpisy_sorted = odpisy_filtered.sort_values('datum_smlouvy').copy()
+        odpisy_sorted['datum_smlouvy'] = pd.to_datetime(odpisy_sorted['datum_smlouvy'])
+        odpisy_sorted['kumulativni_t'] = odpisy_sorted['prodano_t'].cumsum()
+        odpisy_sorted['kumulativni_kc'] = odpisy_sorted['castka_kc'].cumsum()
+        odpisy_sorted['cena_t'] = odpisy_sorted['castka_kc'] / odpisy_sorted['prodano_t']
+
+        # Graf kumulativního prodeje v tunách
+        fig_timeline = go.Figure()
+
+        # Čára - kumulativní prodej
+        fig_timeline.add_trace(go.Scatter(
+            x=odpisy_sorted['datum_smlouvy'],
+            y=odpisy_sorted['kumulativni_t'],
+            mode='lines+markers+text',
+            name='Kumulativní prodej (t)',
+            line=dict(color='#2ECC71', width=3),
+            marker=dict(size=10),
+            text=odpisy_sorted['kumulativni_t'].round(1),
+            textposition='top center',
+            fill='tozeroy',
+            fillcolor='rgba(46, 204, 113, 0.2)'
+        ))
+
+        # Horizontální čára - cílová produkce
+        fig_timeline.add_hline(
+            y=cista_produkce,
+            line_dash="dash",
+            line_color="red",
+            annotation_text=f"Produkce: {cista_produkce:.0f} t",
+            annotation_position="top right"
+        )
+
+        fig_timeline.update_layout(
+            title=f'Kumulativní prodej v čase - {podnik_options[selected_podnik]} ({selected_year})',
+            xaxis_title='Datum',
+            yaxis_title='Prodáno (t)',
+            hovermode='x unified',
+            yaxis=dict(range=[0, max(cista_produkce, odpisy_sorted['kumulativni_t'].max()) * 1.15])
+        )
+        st.plotly_chart(fig_timeline, use_container_width=True)
+
+        # Druhý řádek grafů
+        st.subheader("💰 Přehled tržeb")
         col1, col2 = st.columns(2)
 
         with col1:
-            # Graf tržeb podle prodejů
-            fig_trzby = px.bar(
-                odpisy_filtered.sort_values('datum_smlouvy'),
+            # Graf kumulativních tržeb
+            fig_trzby_kum = go.Figure()
+
+            fig_trzby_kum.add_trace(go.Scatter(
+                x=odpisy_sorted['datum_smlouvy'],
+                y=odpisy_sorted['kumulativni_kc'],
+                mode='lines+markers',
+                name='Kumulativní tržby (Kč)',
+                line=dict(color='#F39C12', width=3),
+                marker=dict(size=8),
+                fill='tozeroy',
+                fillcolor='rgba(243, 156, 18, 0.2)'
+            ))
+
+            fig_trzby_kum.update_layout(
+                title='Kumulativní tržby v čase',
+                xaxis_title='Datum',
+                yaxis_title='Tržby (Kč)',
+                yaxis=dict(tickformat=',d')
+            )
+            st.plotly_chart(fig_trzby_kum, use_container_width=True)
+
+        with col2:
+            # Graf ceny za tunu v čase
+            fig_cena = go.Figure()
+
+            fig_cena.add_trace(go.Scatter(
+                x=odpisy_sorted['datum_smlouvy'],
+                y=odpisy_sorted['cena_t'],
+                mode='lines+markers+text',
+                name='Cena za tunu',
+                line=dict(color='#3498DB', width=2),
+                marker=dict(size=8),
+                text=odpisy_sorted['cena_t'].round(0).astype(int),
+                textposition='top center'
+            ))
+
+            # Průměrná cena
+            avg_cena = celkem_trzba / celkem_prodano if celkem_prodano > 0 else 0
+            fig_cena.add_hline(
+                y=avg_cena,
+                line_dash="dash",
+                line_color="gray",
+                annotation_text=f"Průměr: {avg_cena:,.0f} Kč/t",
+                annotation_position="top right"
+            )
+
+            fig_cena.update_layout(
+                title='Vývoj ceny za tunu (Kč/t)',
+                xaxis_title='Datum',
+                yaxis_title='Cena (Kč/t)',
+                yaxis=dict(range=[0, odpisy_sorted['cena_t'].max() * 1.2])
+            )
+            st.plotly_chart(fig_cena, use_container_width=True)
+
+        # Třetí řádek - sloupcové grafy jednotlivých prodejů
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # Sloupcový graf jednotlivých prodejů
+            fig_bar = px.bar(
+                odpisy_sorted,
+                x='datum_smlouvy',
+                y='prodano_t',
+                text='prodano_t',
+                title='Jednotlivé prodeje (t)',
+                labels={'datum_smlouvy': 'Datum', 'prodano_t': 'Množství (t)'},
+                color='stav' if 'stav' in odpisy_sorted.columns else None,
+                color_discrete_map={'prodano': '#2ECC71', 'nasmlouvano': '#F39C12'}
+            )
+            fig_bar.update_traces(texttemplate='%{text:.1f}', textposition='outside')
+            fig_bar.update_layout(yaxis=dict(range=[0, odpisy_sorted['prodano_t'].max() * 1.3]))
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+        with col2:
+            # Sloupcový graf tržeb
+            fig_trzby_bar = px.bar(
+                odpisy_sorted,
                 x='datum_smlouvy',
                 y='castka_kc',
                 text='castka_kc',
-                title='Tržby podle data',
+                title='Jednotlivé tržby (Kč)',
                 labels={'datum_smlouvy': 'Datum', 'castka_kc': 'Částka (Kč)'},
-                color='castka_kc',
-                color_continuous_scale='Greens'
+                color='stav' if 'stav' in odpisy_sorted.columns else None,
+                color_discrete_map={'prodano': '#2ECC71', 'nasmlouvano': '#F39C12'}
             )
-            fig_trzby.update_traces(texttemplate='%{text:,.0f} Kč', textposition='outside')
-            fig_trzby.update_layout(showlegend=False, yaxis=dict(range=[0, odpisy_filtered['castka_kc'].max() * 1.2]))
-            st.plotly_chart(fig_trzby, use_container_width=True)
-
-        with col2:
-            # Graf ceny za tunu
-            odpisy_cena = odpisy_filtered.copy()
-            odpisy_cena['cena_t'] = odpisy_cena['castka_kc'] / odpisy_cena['prodano_t']
-
-            fig_cena = px.bar(
-                odpisy_cena.sort_values('datum_smlouvy'),
-                x='datum_smlouvy',
-                y='cena_t',
-                text='cena_t',
-                title='Cena za tunu (Kč/t)',
-                labels={'datum_smlouvy': 'Datum', 'cena_t': 'Cena (Kč/t)'},
-                color='cena_t',
-                color_continuous_scale='Blues'
-            )
-            fig_cena.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
-            fig_cena.update_layout(showlegend=False, yaxis=dict(range=[0, odpisy_cena['cena_t'].max() * 1.2]))
-            st.plotly_chart(fig_cena, use_container_width=True)
+            fig_trzby_bar.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
+            fig_trzby_bar.update_layout(yaxis=dict(range=[0, odpisy_sorted['castka_kc'].max() * 1.3]))
+            st.plotly_chart(fig_trzby_bar, use_container_width=True)
 
     st.markdown("---")
 
@@ -275,38 +376,182 @@ def show(data_manager, user, auth_manager):
     # === SEZNAM PRODEJŮ ===
     st.subheader(f"📋 Seznam prodejů - {podnik_options[selected_podnik]} ({selected_year})")
 
+    # Oprávnění k editaci
+    can_edit = auth_manager.has_permission(user['role'], 'write')
+
     if not odpisy_filtered.empty:
         display_df = odpisy_filtered.copy()
 
-        # Přeložit stav
-        stav_map = {'prodano': '✅ Prodáno', 'nasmlouvano': '📝 Nasmlouváno'}
+        # Uložit originální ID pro editaci
+        original_ids = display_df['id'].tolist() if 'id' in display_df.columns else []
+
+        # Pro editaci - stav jako selectbox hodnota
+        stav_options = ['nasmlouvano', 'prodano']
+        stav_labels = {'nasmlouvano': 'Nasmlouváno', 'prodano': 'Prodáno'}
+
+        # Přeložit stav pro export
+        stav_map_export = {'prodano': 'Prodáno', 'nasmlouvano': 'Nasmlouváno'}
         if 'stav' in display_df.columns:
-            display_df['stav'] = display_df['stav'].map(stav_map).fillna(display_df['stav'])
+            display_df['stav_export'] = display_df['stav'].map(stav_map_export).fillna(display_df['stav'])
 
-        # Vybrat a přejmenovat sloupce
-        display_cols = ['datum_smlouvy', 'stav', 'prodano_t', 'castka_kc', 'poznamka']
-        display_cols = [c for c in display_cols if c in display_df.columns]
+        # Vybrat sloupce pro editaci
+        edit_cols = ['datum_smlouvy', 'stav', 'prodano_t', 'castka_kc', 'poznamka']
+        edit_cols = [c for c in edit_cols if c in display_df.columns]
 
-        display_df = display_df[display_cols].copy()
-        col_names = {'datum_smlouvy': 'Datum', 'stav': 'Stav', 'prodano_t': 'Množství (t)', 'castka_kc': 'Částka (Kč)', 'poznamka': 'Poznámka'}
-        display_df.columns = [col_names.get(c, c) for c in display_cols]
+        display_df_edit = display_df[edit_cols].copy().reset_index(drop=True)
 
-        # Vypočítat cenu za tunu
-        if 'Množství (t)' in display_df.columns and 'Částka (Kč)' in display_df.columns:
-            display_df['Cena/t (Kč)'] = (display_df['Částka (Kč)'] / display_df['Množství (t)']).round(0)
-
-        st.dataframe(
-            display_df,
+        # Editovatelná tabulka
+        edited_df = st.data_editor(
+            display_df_edit,
             use_container_width=True,
             hide_index=True,
+            num_rows="dynamic" if can_edit else "fixed",
+            disabled=not can_edit,
             column_config={
-                "Množství (t)": st.column_config.NumberColumn(format="%.2f"),
-                "Částka (Kč)": st.column_config.NumberColumn(format="%d"),
-                "Cena/t (Kč)": st.column_config.NumberColumn(format="%d")
-            }
+                "datum_smlouvy": st.column_config.DateColumn(
+                    "Datum",
+                    format="YYYY-MM-DD",
+                    required=True
+                ),
+                "stav": st.column_config.SelectboxColumn(
+                    "Stav",
+                    options=stav_options,
+                    required=True
+                ),
+                "prodano_t": st.column_config.NumberColumn(
+                    "Množství (t)",
+                    format="%.2f",
+                    min_value=0.0,
+                    required=True
+                ),
+                "castka_kc": st.column_config.NumberColumn(
+                    "Částka (Kč)",
+                    format="%d",
+                    min_value=0,
+                    required=True
+                ),
+                "poznamka": st.column_config.TextColumn(
+                    "Poznámka"
+                )
+            },
+            key="odpisy_editor"
         )
 
-        # Souhrn
+        # Tlačítko pro uložení změn
+        if can_edit:
+            if st.button("💾 Uložit změny v tabulce", type="primary"):
+                try:
+                    # Načíst všechny odpisy
+                    all_odpisy = data_manager.get_odpisy()
+
+                    # Smazat staré záznamy pro tento podnik a rok
+                    all_odpisy = all_odpisy[~((all_odpisy['podnik_id'] == selected_podnik) & (all_odpisy['rok'] == selected_year))]
+
+                    # Přidat upravené záznamy
+                    for idx, row in edited_df.iterrows():
+                        if pd.notna(row.get('prodano_t')) and row.get('prodano_t', 0) > 0:
+                            new_record = {
+                                'id': original_ids[idx] if idx < len(original_ids) else int(all_odpisy['id'].max() + 1) if not all_odpisy.empty else 1,
+                                'podnik_id': selected_podnik,
+                                'rok': selected_year,
+                                'datum_smlouvy': str(row.get('datum_smlouvy', ''))[:10],
+                                'stav': row.get('stav', 'nasmlouvano'),
+                                'prodano_t': row.get('prodano_t', 0),
+                                'castka_kc': row.get('castka_kc', 0),
+                                'poznamka': row.get('poznamka', ''),
+                                'faktura': ''
+                            }
+                            all_odpisy = pd.concat([all_odpisy, pd.DataFrame([new_record])], ignore_index=True)
+
+                    # Uložit
+                    all_odpisy.to_csv(f'{data_manager.data_dir}/odpisy.csv', index=False)
+                    data_manager.load_csv('odpisy.csv', force_reload=True)
+                    st.success("Změny byly uloženy!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Chyba při ukládání: {e}")
+
+        # Pro export - zobrazit s českými názvy
+        display_df_show = display_df[edit_cols].copy()
+        col_names = {'datum_smlouvy': 'Datum', 'stav': 'Stav', 'prodano_t': 'Množství (t)', 'castka_kc': 'Částka (Kč)', 'poznamka': 'Poznámka'}
+        display_df_show.columns = [col_names.get(c, c) for c in edit_cols]
+
+        # Vypočítat cenu za tunu pro export
+        if 'Množství (t)' in display_df_show.columns and 'Částka (Kč)' in display_df_show.columns:
+            display_df_show['Cena/t (Kč)'] = (display_df_show['Částka (Kč)'] / display_df_show['Množství (t)']).round(0)
+
+        # === TLAČÍTKA PRO EXPORT ===
+        st.markdown("---")
+        col1, col2, col3, col4 = st.columns([1, 1, 1, 3])
+
+        # Připravit data pro export
+        export_df = display_df[['datum_smlouvy', 'stav_export', 'prodano_t', 'castka_kc', 'poznamka']].copy()
+        export_df.columns = ['Datum', 'Stav', 'Množství (t)', 'Částka (Kč)', 'Poznámka']
+        export_df['Cena/t (Kč)'] = (export_df['Částka (Kč)'] / export_df['Množství (t)']).round(0)
+
+        # Přidat souhrn na konec
+        souhrn_row = pd.DataFrame([{
+            'Datum': 'CELKEM',
+            'Stav': '',
+            'Množství (t)': export_df['Množství (t)'].sum(),
+            'Částka (Kč)': export_df['Částka (Kč)'].sum(),
+            'Poznámka': '',
+            'Cena/t (Kč)': export_df['Částka (Kč)'].sum() / export_df['Množství (t)'].sum() if export_df['Množství (t)'].sum() > 0 else 0
+        }])
+        export_df_with_sum = pd.concat([export_df, souhrn_row], ignore_index=True)
+
+        with col1:
+            # Export do CSV
+            csv_data = export_df_with_sum.to_csv(index=False, encoding='utf-8-sig')
+            st.download_button(
+                label="📥 Stáhnout CSV",
+                data=csv_data,
+                file_name=f"odpisy_{podnik_options[selected_podnik]}_{selected_year}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+
+        with col2:
+            # Export do Excel
+            excel_buffer = BytesIO()
+            with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                # Hlavní data
+                export_df_with_sum.to_excel(writer, sheet_name='Prodeje', index=False)
+
+                # Souhrn
+                souhrn_data = pd.DataFrame([
+                    ['Podnik', podnik_options[selected_podnik]],
+                    ['Rok', selected_year],
+                    ['Produkce (t)', cista_produkce],
+                    ['Prodáno (t)', prodano_t],
+                    ['Nasmlouváno (t)', nasmlouvano_t],
+                    ['Zbývá (t)', zbytek_sklad],
+                    ['Vyděláno (Kč)', vydelano_kc],
+                    ['Čeká na platbu (Kč)', nasmlouvano_kc],
+                    ['Celkem tržby (Kč)', celkem_trzba],
+                ], columns=['Ukazatel', 'Hodnota'])
+                souhrn_data.to_excel(writer, sheet_name='Souhrn', index=False)
+
+            excel_data = excel_buffer.getvalue()
+            st.download_button(
+                label="📥 Stáhnout Excel",
+                data=excel_data,
+                file_name=f"odpisy_{podnik_options[selected_podnik]}_{selected_year}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+
+        with col3:
+            # Tisk / PDF info
+            st.download_button(
+                label="🖨️ Tisk (CSV)",
+                data=csv_data,
+                file_name=f"odpisy_tisk_{podnik_options[selected_podnik]}_{selected_year}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+
+        # Souhrn pod tlačítky
         st.markdown("---")
         col1, col2, col3 = st.columns(3)
         with col1:

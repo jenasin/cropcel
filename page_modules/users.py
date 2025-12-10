@@ -104,6 +104,32 @@ def show(data_manager, user, auth_manager):
             if col in display_df.columns:
                 display_df = display_df.drop(columns=[col])
 
+        # Převést ID podniků na názvy
+        if not businesses.empty and 'business_ids' in display_df.columns:
+            business_id_to_name = {row['id']: row['nazev'] for _, row in businesses.iterrows()}
+
+            def convert_ids_to_names(ids_str):
+                if pd.isna(ids_str) or ids_str == '' or ids_str is None:
+                    return ''
+                try:
+                    ids = str(ids_str).split(',')
+                    names = []
+                    for id_str in ids:
+                        id_str = id_str.strip()
+                        if id_str:
+                            try:
+                                id_int = int(float(id_str))
+                                name = business_id_to_name.get(id_int, f'ID:{id_str}')
+                                names.append(name)
+                            except (ValueError, TypeError):
+                                names.append(f'ID:{id_str}')
+                    return ', '.join(names)
+                except:
+                    return str(ids_str)
+
+            display_df['Podniky'] = display_df['business_ids'].apply(convert_ids_to_names)
+            display_df = display_df.drop(columns=['business_ids'])
+
         edited_df = st.data_editor(
             display_df,
             use_container_width=True,
@@ -126,8 +152,9 @@ def show(data_manager, user, auth_manager):
                 "full_name": st.column_config.TextColumn(
                     "Celé jméno"
                 ),
-                "business_ids": st.column_config.TextColumn(
-                    "ID podniků"
+                "Podniky": st.column_config.TextColumn(
+                    "Podniky",
+                    width="large"
                 ),
                 "is_active": st.column_config.CheckboxColumn(
                     "Aktivní",

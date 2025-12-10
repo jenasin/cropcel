@@ -76,10 +76,34 @@ def show(data_manager, user, auth_manager=None):
         )
 
     with col2:
-        # Výběr plodiny
+        # Výběr plodiny - seřazeno podle sloupce 'poradi' z tabulky crops
         if 'plodina_nazev' in fields_year.columns:
-            plodiny = sorted(fields_year['plodina_nazev'].dropna().unique())
-            if plodiny:
+            plodiny_v_datech = fields_year['plodina_nazev'].dropna().unique().tolist()
+
+            if plodiny_v_datech:
+                # Seřadit plodiny podle 'poradi' z tabulky crops
+                if not crops.empty and 'poradi' in crops.columns:
+                    # Vytvořit mapování nazev -> poradi
+                    crops_sorted = crops.copy()
+                    # Nahradit NaN hodnoty vysokým číslem aby byly na konci
+                    crops_sorted['poradi'] = pd.to_numeric(crops_sorted['poradi'], errors='coerce').fillna(9999)
+                    crops_sorted = crops_sorted.sort_values('poradi')
+
+                    # Seřadit plodiny podle pořadí
+                    plodiny_sorted = []
+                    for _, row in crops_sorted.iterrows():
+                        if row['nazev'] in plodiny_v_datech:
+                            plodiny_sorted.append(row['nazev'])
+
+                    # Přidat plodiny které nejsou v tabulce crops na konec
+                    for p in plodiny_v_datech:
+                        if p not in plodiny_sorted:
+                            plodiny_sorted.append(p)
+
+                    plodiny = plodiny_sorted
+                else:
+                    plodiny = sorted(plodiny_v_datech)
+
                 selected_plodina = st.selectbox(
                     "Plodina:",
                     plodiny,
