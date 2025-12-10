@@ -15,6 +15,7 @@ APP_ICON = "🌾"
 MENU_ITEMS = {
     'admin': [
         {'name': 'Dashboard', 'icon': '📊'},
+        {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Statistiky', 'icon': '📈'},
         {'name': 'Odrůdy', 'icon': '📉'},
         {'name': 'Pole', 'icon': '🚜'},
@@ -33,6 +34,7 @@ MENU_ITEMS = {
     ],
     'editor': [
         {'name': 'Dashboard', 'icon': '📊'},
+        {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Statistiky', 'icon': '📈'},
         {'name': 'Odrůdy', 'icon': '📉'},
         {'name': 'Pole', 'icon': '🚜'},
@@ -49,6 +51,7 @@ MENU_ITEMS = {
     ],
     'watcher': [
         {'name': 'Dashboard', 'icon': '📊'},
+        {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Odrůdy', 'icon': '📉'},
         {'name': 'Pole', 'icon': '🚜'},
         {'name': 'Souhrn plodin', 'icon': '📈'},
@@ -59,6 +62,7 @@ MENU_ITEMS = {
 # Mapování stránek na soubory
 PAGE_FILES = {
     'Dashboard': 'dashboard',
+    'Přehled podniku': 'prehled_podniku',
     'Odrůdy': 'odrudy',
     'Podniky': 'businesses',
     'Plodiny': 'crops',
