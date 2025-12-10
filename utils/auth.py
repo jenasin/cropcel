@@ -146,6 +146,54 @@ class AuthManager:
         podniky = user.get('podniky', [])
         return podnik_id in podniky
 
+    def can_edit_podnik(self, user: Dict, podnik_id: int) -> bool:
+        """
+        Kontroluje, zda může uživatel editovat daný podnik
+
+        Args:
+            user: Dict s informacemi o uživateli
+            podnik_id: ID podniku
+
+        Returns:
+            True pokud má právo editovat
+        """
+        role = user.get('role', 'watcher')
+
+        # Watcher nemůže editovat nic
+        if role == 'watcher':
+            return False
+
+        # Admin může editovat vše
+        if role == 'admin':
+            return True
+
+        # Editor může editovat jen přiřazené podniky
+        if role == 'editor':
+            podniky = user.get('podniky', [])
+            return podnik_id in podniky
+
+        return False
+
+    def get_allowed_podniky(self, user: Dict, businesses_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Vrátí DataFrame podniků, ke kterým má uživatel přístup
+
+        Args:
+            user: Dict s informacemi o uživateli
+            businesses_df: DataFrame všech podniků
+
+        Returns:
+            Filtrovaný DataFrame podniků
+        """
+        if user.get('role') == 'admin':
+            return businesses_df
+
+        podniky = user.get('podniky', [])
+        if podniky:
+            return businesses_df[businesses_df['id'].isin(podniky)]
+
+        return pd.DataFrame()
+
 
 def init_session_state():
     """Inicializuje session state pro autentizaci"""

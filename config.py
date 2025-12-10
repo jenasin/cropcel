@@ -34,6 +34,7 @@ MENU_ITEMS = {
     ],
     'editor': [
         {'name': 'Dashboard', 'icon': '📊'},
+        {'name': 'Zadávání dat', 'icon': '📝'},
         {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Statistiky', 'icon': '📈'},
         {'name': 'Odrůdy', 'icon': '📉'},
@@ -62,6 +63,7 @@ MENU_ITEMS = {
 # Mapování stránek na soubory
 PAGE_FILES = {
     'Dashboard': 'dashboard',
+    'Zadávání dat': 'zadavani',
     'Přehled podniku': 'prehled_podniku',
     'Odrůdy': 'odrudy',
     'Podniky': 'businesses',
