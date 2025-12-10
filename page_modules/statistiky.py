@@ -265,19 +265,18 @@ def render(data_manager, user_businesses):
         col1, col2 = st.columns(2)
 
         with col1:
-            # TOP 10 odrůd podle produkce
-            top_varieties = variety_stats.head(10)
+            # Všechny odrůdy podle produkce
             fig = go.Figure()
             fig.add_trace(go.Bar(
-                x=top_varieties['Odrůda'],
-                y=top_varieties['Produkce (t)'],
+                x=variety_stats['Odrůda'],
+                y=variety_stats['Produkce (t)'],
                 marker_color='#A23B72',
-                text=top_varieties['Produkce (t)'].round(1),
+                text=variety_stats['Produkce (t)'].round(1),
                 textposition='outside'
             ))
-            max_val = top_varieties['Produkce (t)'].max() if not top_varieties.empty else 1
+            max_val = variety_stats['Produkce (t)'].max() if not variety_stats.empty else 1
             fig.update_layout(
-                title='TOP 10 odrůd podle produkce',
+                title='Odrůdy podle produkce',
                 xaxis_title='Odrůda',
                 yaxis_title='Produkce (t)',
                 yaxis=dict(range=[0, max_val * 1.15]) if max_val > 0 else None,
@@ -286,19 +285,19 @@ def render(data_manager, user_businesses):
             st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            # TOP 10 odrůd podle výnosu
-            top_yield = variety_stats.nlargest(10, 'Výnos (t/ha)')
+            # Všechny odrůdy podle výnosu
+            variety_stats_by_yield = variety_stats.sort_values('Výnos (t/ha)', ascending=False)
             fig = go.Figure()
             fig.add_trace(go.Bar(
-                x=top_yield['Odrůda'],
-                y=top_yield['Výnos (t/ha)'],
+                x=variety_stats_by_yield['Odrůda'],
+                y=variety_stats_by_yield['Výnos (t/ha)'],
                 marker_color='#F18F01',
-                text=top_yield['Výnos (t/ha)'].round(2),
+                text=variety_stats_by_yield['Výnos (t/ha)'].round(2),
                 textposition='outside'
             ))
-            max_val = top_yield['Výnos (t/ha)'].max() if not top_yield.empty else 1
+            max_val = variety_stats_by_yield['Výnos (t/ha)'].max() if not variety_stats_by_yield.empty else 1
             fig.update_layout(
-                title='TOP 10 odrůd podle výnosu',
+                title='Odrůdy podle výnosu',
                 xaxis_title='Odrůda',
                 yaxis_title='Výnos (t/ha)',
                 yaxis=dict(range=[0, max_val * 1.15]) if max_val > 0 else None,
@@ -382,8 +381,8 @@ def render(data_manager, user_businesses):
 
     st.divider()
 
-    # ==================== SEKCE 5: TOP ŽEBŘÍČKY ====================
-    st.subheader(f"TOP žebříčky pro rok {selected_year}")
+    # ==================== SEKCE 5: ŽEBŘÍČKY ====================
+    st.subheader(f"Žebříčky pro rok {selected_year}")
 
     col1, col2, col3 = st.columns(3)
 
@@ -394,28 +393,28 @@ def render(data_manager, user_businesses):
         year_fields['nazev_pole'] = 'Pole ' + year_fields['id'].astype(str)
 
     with col1:
-        st.markdown("**TOP 5 polí podle produkce**")
+        st.markdown("**Pole podle produkce**")
         if not year_fields.empty:
-            top_fields = year_fields.nlargest(5, production_col)[['nazev_pole', 'vymera', production_col]]
-            top_fields.columns = ['Pole', 'Výměra (ha)', 'Produkce (t)']
-            top_fields['Produkce (t)'] = top_fields['Produkce (t)'].round(1)
-            st.dataframe(top_fields, use_container_width=True, hide_index=True)
+            all_fields_prod = year_fields.sort_values(production_col, ascending=False)[['nazev_pole', 'vymera', production_col]]
+            all_fields_prod.columns = ['Pole', 'Výměra (ha)', 'Produkce (t)']
+            all_fields_prod['Produkce (t)'] = all_fields_prod['Produkce (t)'].round(1)
+            st.dataframe(all_fields_prod, use_container_width=True, hide_index=True)
 
     with col2:
-        st.markdown("**TOP 5 polí podle výnosu**")
+        st.markdown("**Pole podle výnosu**")
         if not year_fields.empty:
             year_fields['vynos_temp'] = year_fields[production_col] / year_fields['vymera']
-            top_yield_fields = year_fields.nlargest(5, 'vynos_temp')[['nazev_pole', 'vymera', 'vynos_temp']]
-            top_yield_fields.columns = ['Pole', 'Výměra (ha)', 'Výnos (t/ha)']
-            top_yield_fields['Výnos (t/ha)'] = top_yield_fields['Výnos (t/ha)'].round(2)
-            st.dataframe(top_yield_fields, use_container_width=True, hide_index=True)
+            all_yield_fields = year_fields.sort_values('vynos_temp', ascending=False)[['nazev_pole', 'vymera', 'vynos_temp']]
+            all_yield_fields.columns = ['Pole', 'Výměra (ha)', 'Výnos (t/ha)']
+            all_yield_fields['Výnos (t/ha)'] = all_yield_fields['Výnos (t/ha)'].round(2)
+            st.dataframe(all_yield_fields, use_container_width=True, hide_index=True)
 
     with col3:
-        st.markdown("**TOP 5 plodin podle výnosu**")
+        st.markdown("**Plodiny podle výnosu**")
         if 'crop_stats' in dir() and not crop_stats.empty:
-            top_crop_yield = crop_stats.nlargest(5, 'Výnos (t/ha)')[['Plodina', 'Výnos (t/ha)']]
-            top_crop_yield['Výnos (t/ha)'] = top_crop_yield['Výnos (t/ha)'].round(2)
-            st.dataframe(top_crop_yield, use_container_width=True, hide_index=True)
+            all_crop_yield = crop_stats.sort_values('Výnos (t/ha)', ascending=False)[['Plodina', 'Výnos (t/ha)']]
+            all_crop_yield['Výnos (t/ha)'] = all_crop_yield['Výnos (t/ha)'].round(2)
+            st.dataframe(all_crop_yield, use_container_width=True, hide_index=True)
 
     st.divider()
 
@@ -476,16 +475,16 @@ def render(data_manager, user_businesses):
             podnik_stats['Výnos (t/ha)'] = podnik_stats[production_col] / podnik_stats['vymera']
             podnik_stats = podnik_stats.sort_values('Výnos (t/ha)', ascending=False)
 
-            # TOP odrůdy pro každou plodinu
+            # Všechny odrůdy pro každou plodinu
             unique_crops = podnik_stats['plodina_nazev'].unique()
 
             recommendations = []
             for plodina in unique_crops:
-                plodina_data = podnik_stats[podnik_stats['plodina_nazev'] == plodina].head(3)
+                plodina_data = podnik_stats[podnik_stats['plodina_nazev'] == plodina]
                 for _, row in plodina_data.iterrows():
                     recommendations.append({
                         'Plodina': row['plodina_nazev'],
-                        'Doporučená odrůda': row['odruda_nazev'],
+                        'Odrůda': row['odruda_nazev'],
                         'Výnos (t/ha)': round(row['Výnos (t/ha)'], 2),
                         'Výměra (ha)': round(row['vymera'], 1),
                         'Produkce (t)': round(row[production_col], 1)
@@ -495,19 +494,18 @@ def render(data_manager, user_businesses):
                 rec_df = pd.DataFrame(recommendations)
                 st.dataframe(rec_df, use_container_width=True, hide_index=True)
 
-                # Graf TOP odrůd pro tento podnik
-                top_10 = podnik_stats.head(10)
+                # Graf všech odrůd pro tento podnik
                 fig = go.Figure()
                 fig.add_trace(go.Bar(
-                    x=[f"{row['odruda_nazev']}<br>({row['plodina_nazev']})" for _, row in top_10.iterrows()],
-                    y=top_10['Výnos (t/ha)'],
+                    x=[f"{row['odruda_nazev']}<br>({row['plodina_nazev']})" for _, row in podnik_stats.iterrows()],
+                    y=podnik_stats['Výnos (t/ha)'],
                     marker_color='#2E86AB',
-                    text=top_10['Výnos (t/ha)'].round(2),
+                    text=podnik_stats['Výnos (t/ha)'].round(2),
                     textposition='outside'
                 ))
-                max_val = top_10['Výnos (t/ha)'].max()
+                max_val = podnik_stats['Výnos (t/ha)'].max()
                 fig.update_layout(
-                    title=f'TOP 10 nejvýnosnějších odrůd - {podnik}',
+                    title=f'Nejvýnosnější odrůdy - {podnik}',
                     xaxis_title='Odrůda (Plodina)',
                     yaxis_title='Výnos (t/ha)',
                     yaxis=dict(range=[0, max_val * 1.15]) if max_val > 0 else None,
