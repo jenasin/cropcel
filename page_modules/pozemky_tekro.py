@@ -97,13 +97,23 @@ def render(data_manager):
         for col in year_cols:
             df[col] = df[col].apply(lambda x: f"{x:,.2f}".replace(',', ' ') if x > 0 else "0")
 
-        # Styling - modrý řádek Celkem s bílým písmem
-        def highlight_celkem(row):
-            if row['Typ pozemku'] == 'Celkem':
-                return ['background-color: #2E86AB; color: white; font-weight: bold'] * len(row)
-            return [''] * len(row)
+        # Styling - modrý řádek Celkem, zelený první sloupec
+        def highlight_rows(row):
+            styles = []
+            is_celkem = row['Typ pozemku'] == 'Celkem'
 
-        styled_df = df.style.apply(highlight_celkem, axis=1)
+            for i, col in enumerate(row.index):
+                if is_celkem:
+                    styles.append('background-color: #2E86AB; color: white; font-weight: bold')
+                elif col == 'Typ pozemku':
+                    styles.append('background-color: #28a745; color: white; font-weight: bold')
+                else:
+                    styles.append('')
+            return styles
+
+        styled_df = df.style.apply(highlight_rows, axis=1).set_table_styles([
+            {'selector': 'th', 'props': [('background-color', '#FFC107'), ('color', 'black'), ('font-weight', 'bold')]}
+        ])
 
         # Zobrazit tabulku
         st.dataframe(
