@@ -156,9 +156,17 @@ def render(data_manager):
         display_df['Čistá produkce [t]'] = display_df['Čistá produkce [t]'].apply(lambda x: f"{x:,.2f}".replace(',', ' '))
         display_df['Rozdíl čistá/hrubá [%]'] = display_df['Rozdíl čistá/hrubá [%]'].apply(lambda x: f"{x:.2f}%")
 
+        # Styling - modrý řádek Celkem s bílým písmem
+        def highlight_celkem(row):
+            if row['Plodina'] == 'Celkem':
+                return ['background-color: #2E86AB; color: white; font-weight: bold'] * len(row)
+            return [''] * len(row)
+
+        styled_df = display_df.style.apply(highlight_celkem, axis=1)
+
         # Zobrazit tabulku
         st.dataframe(
-            display_df,
+            styled_df,
             use_container_width=True,
             hide_index=True,
             column_config={
