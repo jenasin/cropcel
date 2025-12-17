@@ -127,6 +127,9 @@ def show_main_content():
     if selected_page == 'Dashboard':
         from page_modules import dashboard
         dashboard.show(get_data_manager(), st.session_state.user)
+    elif selected_page == 'Podniky přehled':
+        from page_modules import podniky_prehled
+        podniky_prehled.show(get_data_manager(), st.session_state.user, get_auth_manager())
     elif selected_page == 'Zadávání dat':
         from page_modules import zadavani
         zadavani.show(get_data_manager(), st.session_state.user, get_auth_manager())
