@@ -16,6 +16,7 @@ MENU_ITEMS = {
     'admin': [
         {'name': 'Dashboard', 'icon': '📊'},
         {'name': 'Podniky přehled', 'icon': '🏢'},
+        {'name': 'Pozemky Tekro', 'icon': '🌍'},
         {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Statistiky', 'icon': '📈'},
         {'name': 'Odrůdy', 'icon': '📉'},
@@ -36,6 +37,7 @@ MENU_ITEMS = {
     'editor': [
         {'name': 'Dashboard', 'icon': '📊'},
         {'name': 'Podniky přehled', 'icon': '🏢'},
+        {'name': 'Pozemky Tekro', 'icon': '🌍'},
         {'name': 'Zadávání dat', 'icon': '📝'},
         {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Statistiky', 'icon': '📈'},
@@ -55,6 +57,7 @@ MENU_ITEMS = {
     'watcher': [
         {'name': 'Dashboard', 'icon': '📊'},
         {'name': 'Podniky přehled', 'icon': '🏢'},
+        {'name': 'Pozemky Tekro', 'icon': '🌍'},
         {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Odrůdy', 'icon': '📉'},
         {'name': 'Pole', 'icon': '🚜'},
@@ -67,6 +70,7 @@ MENU_ITEMS = {
 PAGE_FILES = {
     'Dashboard': 'dashboard',
     'Podniky přehled': 'podniky_prehled',
+    'Pozemky Tekro': 'pozemky_tekro',
     'Zadávání dat': 'zadavani',
     'Přehled podniku': 'prehled_podniku',
     'Odrůdy': 'odrudy',

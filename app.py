@@ -130,6 +130,9 @@ def show_main_content():
     elif selected_page == 'Podniky přehled':
         from page_modules import podniky_prehled
         podniky_prehled.show(get_data_manager(), st.session_state.user, get_auth_manager())
+    elif selected_page == 'Pozemky Tekro':
+        from page_modules import pozemky_tekro
+        pozemky_tekro.show(get_data_manager(), st.session_state.user, get_auth_manager())
     elif selected_page == 'Zadávání dat':
         from page_modules import zadavani
         zadavani.show(get_data_manager(), st.session_state.user, get_auth_manager())
