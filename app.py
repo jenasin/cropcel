@@ -90,7 +90,7 @@ def show_sidebar():
 
         # Inicializace vybrané stránky
         if 'selected_page' not in st.session_state:
-            st.session_state.selected_page = 'Dashboard'
+            st.session_state.selected_page = 'Přehled Tekro'
 
         # Najdi index aktuální stránky
         current_index = 0
@@ -121,13 +121,13 @@ def show_sidebar():
 
 def show_main_content():
     """Zobrazí hlavní obsah podle vybrané stránky"""
-    selected_page = st.session_state.get('selected_page', 'Dashboard')
+    selected_page = st.session_state.get('selected_page', 'Přehled Tekro')
 
     # Import a zobrazení příslušné stránky
-    if selected_page == 'Dashboard':
+    if selected_page == 'Nástěnka':
         from page_modules import dashboard
         dashboard.show(get_data_manager(), st.session_state.user)
-    elif selected_page == 'Podniky přehled':
+    elif selected_page == 'Podniky Tekro':
         from page_modules import podniky_prehled
         podniky_prehled.show(get_data_manager(), st.session_state.user, get_auth_manager())
     elif selected_page == 'Pozemky Tekro':
@@ -184,6 +184,18 @@ def show_main_content():
     elif selected_page == 'Statistiky':
         from page_modules import statistiky
         statistiky.show(get_data_manager(), st.session_state.user, get_auth_manager())
+    elif selected_page == 'Srážky Tekro':
+        from page_modules import srazky_tekro
+        srazky_tekro.show(get_data_manager(), st.session_state.user, get_auth_manager())
+    elif selected_page == 'Přehled Tekro':
+        from page_modules import prehled_tekro
+        prehled_tekro.show(get_data_manager(), st.session_state.user, get_auth_manager())
+    elif selected_page == 'Plodiny Tekro':
+        from page_modules import plodiny_tekro
+        plodiny_tekro.show(get_data_manager(), st.session_state.user, get_auth_manager())
+    elif selected_page == 'Osevní plány Tekro':
+        from page_modules import osevni_plany
+        osevni_plany.show(get_data_manager(), st.session_state.user, get_auth_manager())
 
 
 def main():

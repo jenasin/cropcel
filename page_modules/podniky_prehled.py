@@ -14,6 +14,18 @@ def render(data_manager):
     """Vykreslí stránku s přehledem podniků"""
     st.header("Podniky přehled")
 
+    # CSS pro žlutou hlavičku tabulek
+    st.markdown("""
+    <style>
+    [data-testid="stDataFrame"] [data-testid="glideDataEditor"] [class*="header"] {
+        background-color: #FFC107 !important;
+    }
+    .dvn-scroller [class*="header"] {
+        background-color: #FFC107 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     # Načtení dat
     businesses = data_manager.get_businesses()
     fields = data_manager.get_fields()
@@ -170,18 +182,16 @@ def render(data_manager):
                     styles.append('')
             return styles
 
-        styled_df = display_df.style.apply(highlight_rows, axis=1).set_table_styles([
-            {'selector': 'th', 'props': [('background-color', '#FFC107'), ('color', 'black'), ('font-weight', 'bold')]}
-        ])
+        styled_df = display_df.style.apply(highlight_rows, axis=1)
 
-        # Zobrazit tabulku
+        # Zobrazit tabulku s vyhledáváním a scrollbarem
+        # Výška podle počtu řádků (35px na řádek + 38px hlavička)
+        table_height = len(display_df) * 35 + 38
         st.dataframe(
             styled_df,
             use_container_width=True,
             hide_index=True,
-            column_config={
-                "Plodina": st.column_config.TextColumn("Plodina", width="medium"),
-            }
+            height=table_height
         )
 
         st.markdown("---")

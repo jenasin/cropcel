@@ -102,6 +102,19 @@ class DataManager:
         """Načte odpisy (prodeje ze skladu)"""
         return self.load_csv('odpisy.csv')
 
+    def save_sbernasrazky(self, df: pd.DataFrame) -> bool:
+        """Uloží sběrné srážky do CSV"""
+        try:
+            filepath = os.path.join(self.base_path, 'sbernasrazky.csv')
+            df.to_csv(filepath, index=False)
+            # Invaliduj cache
+            if 'sbernasrazky.csv' in self.cache:
+                del self.cache['sbernasrazky.csv']
+            return True
+        except Exception as e:
+            st.error(f"Chyba při ukládání sbernasrazky.csv: {e}")
+            return False
+
     def filter_by_business(self, df: pd.DataFrame, business_ids: List[int]) -> pd.DataFrame:
         """
         Filtruje data podle ID podniků

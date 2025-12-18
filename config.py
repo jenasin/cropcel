@@ -14,9 +14,12 @@ APP_ICON = "🌾"
 # Menu položky podle rolí
 MENU_ITEMS = {
     'admin': [
-        {'name': 'Dashboard', 'icon': '📊'},
-        {'name': 'Podniky přehled', 'icon': '🏢'},
+        {'name': 'Přehled Tekro', 'icon': '📋'},
+        {'name': 'Plodiny Tekro', 'icon': '🌱'},
+        {'name': 'Osevní plány Tekro', 'icon': '📅'},
+        {'name': 'Podniky Tekro', 'icon': '🏢'},
         {'name': 'Pozemky Tekro', 'icon': '🌍'},
+        {'name': 'Srážky Tekro', 'icon': '🌧️'},
         {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Statistiky', 'icon': '📈'},
         {'name': 'Odrůdy', 'icon': '📉'},
@@ -33,11 +36,15 @@ MENU_ITEMS = {
         {'name': 'Podniky', 'icon': '🏢'},
         {'name': 'Plodiny', 'icon': '🌾'},
         {'name': 'Odrůdy osiva', 'icon': '🌱'},
+        {'name': 'Nástěnka', 'icon': '📊'},
     ],
     'editor': [
-        {'name': 'Dashboard', 'icon': '📊'},
-        {'name': 'Podniky přehled', 'icon': '🏢'},
+        {'name': 'Přehled Tekro', 'icon': '📋'},
+        {'name': 'Plodiny Tekro', 'icon': '🌱'},
+        {'name': 'Osevní plány Tekro', 'icon': '📅'},
+        {'name': 'Podniky Tekro', 'icon': '🏢'},
         {'name': 'Pozemky Tekro', 'icon': '🌍'},
+        {'name': 'Srážky Tekro', 'icon': '🌧️'},
         {'name': 'Zadávání dat', 'icon': '📝'},
         {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Statistiky', 'icon': '📈'},
@@ -53,23 +60,27 @@ MENU_ITEMS = {
         {'name': 'Podniky', 'icon': '🏢'},
         {'name': 'Plodiny', 'icon': '🌾'},
         {'name': 'Odrůdy osiva', 'icon': '🌱'},
+        {'name': 'Nástěnka', 'icon': '📊'},
     ],
     'watcher': [
-        {'name': 'Dashboard', 'icon': '📊'},
-        {'name': 'Podniky přehled', 'icon': '🏢'},
+        {'name': 'Přehled Tekro', 'icon': '📋'},
+        {'name': 'Plodiny Tekro', 'icon': '🌱'},
+        {'name': 'Osevní plány Tekro', 'icon': '📅'},
+        {'name': 'Podniky Tekro', 'icon': '🏢'},
         {'name': 'Pozemky Tekro', 'icon': '🌍'},
         {'name': 'Přehled podniku', 'icon': '🏭'},
         {'name': 'Odrůdy', 'icon': '📉'},
         {'name': 'Pole', 'icon': '🚜'},
         {'name': 'Souhrn plodin', 'icon': '📈'},
         {'name': 'Plodiny', 'icon': '🌾'},
+        {'name': 'Nástěnka', 'icon': '📊'},
     ]
 }
 
 # Mapování stránek na soubory
 PAGE_FILES = {
-    'Dashboard': 'dashboard',
-    'Podniky přehled': 'podniky_prehled',
+    'Nástěnka': 'dashboard',
+    'Podniky Tekro': 'podniky_prehled',
     'Pozemky Tekro': 'pozemky_tekro',
     'Zadávání dat': 'zadavani',
     'Přehled podniku': 'prehled_podniku',
@@ -88,4 +99,8 @@ PAGE_FILES = {
     'Uživatelé': 'users',
     'Přístup k podnikům': 'userpodniky',
     'Statistiky': 'statistiky',
+    'Srážky Tekro': 'srazky_tekro',
+    'Přehled Tekro': 'prehled_tekro',
+    'Plodiny Tekro': 'plodiny_tekro',
+    'Osevní plány Tekro': 'osevni_plany',
 }
