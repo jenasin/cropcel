@@ -402,8 +402,12 @@ def show(data_manager, user, auth_manager):
         if 'stav' in display_df.columns:
             display_df['stav_export'] = display_df['stav'].map(stav_map_export).fillna(display_df['stav'])
 
+        # Vypočítat rozdíl (vyjednáno navíc)
+        if 'nabidka_kc' in display_df.columns and 'castka_kc' in display_df.columns:
+            display_df['rozdil_kc'] = display_df['castka_kc'] - display_df['nabidka_kc']
+
         # Vybrat sloupce pro editaci
-        edit_cols = ['datum_smlouvy', 'stav', 'prodano_t', 'nabidka_kc', 'castka_kc', 'poznamka']
+        edit_cols = ['datum_smlouvy', 'stav', 'prodano_t', 'nabidka_kc', 'castka_kc', 'rozdil_kc', 'poznamka']
         edit_cols = [c for c in edit_cols if c in display_df.columns]
 
         display_df_edit = display_df[edit_cols].copy().reset_index(drop=True)
@@ -437,15 +441,21 @@ def show(data_manager, user, auth_manager):
                     required=True
                 ),
                 "nabidka_kc": st.column_config.NumberColumn(
-                    "Nabídka (Kč)",
+                    "Nabízeno (Kč)",
                     format="%d",
                     min_value=0
                 ),
                 "castka_kc": st.column_config.NumberColumn(
-                    "Prodejní cena (Kč)",
+                    "Prodáno za (Kč)",
                     format="%d",
                     min_value=0,
                     required=True
+                ),
+                "rozdil_kc": st.column_config.NumberColumn(
+                    "Rozdíl (Kč)",
+                    format="%+d",
+                    disabled=True,
+                    help="Rozdíl mezi prodejní cenou a nabídkou"
                 ),
                 "poznamka": st.column_config.TextColumn(
                     "Poznámka"
