@@ -135,6 +135,59 @@ def show(data_manager, user, auth_manager):
         procento = (celkem_prodano / cista_produkce * 100) if cista_produkce > 0 else 0
         st.caption(f"📈 Prodáno: {procento:.1f}% produkce")
 
+    # === PŘEHLED PODLE TYPU OBILÍ ===
+    if not odpisy_filtered.empty and 'poznamka' in odpisy_filtered.columns:
+        st.markdown("---")
+        st.subheader("🌾 Přehled podle typu obilí")
+
+        # Extrahovat typ obilí z poznámky
+        def extract_crop_type(poznamka):
+            if pd.isna(poznamka) or poznamka == '':
+                return 'Ostatní'
+            poznamka_lower = str(poznamka).lower()
+            if 'pšenic' in poznamka_lower:
+                return 'Pšenice'
+            elif 'ječmen' in poznamka_lower:
+                return 'Ječmen'
+            elif 'řepk' in poznamka_lower:
+                return 'Řepka'
+            elif 'kukuřic' in poznamka_lower:
+                return 'Kukuřice'
+            elif 'oves' in poznamka_lower:
+                return 'Oves'
+            elif 'žit' in poznamka_lower:
+                return 'Žito'
+            else:
+                return 'Ostatní'
+
+        odpisy_filtered_copy = odpisy_filtered.copy()
+        odpisy_filtered_copy['typ_obili'] = odpisy_filtered_copy['poznamka'].apply(extract_crop_type)
+
+        # Seskupit podle typu obilí
+        grouped = odpisy_filtered_copy.groupby('typ_obili').agg({
+            'prodano_t': 'sum',
+            'nabidka_kc': 'sum',
+            'castka_kc': 'sum'
+        }).reset_index()
+
+        if not grouped.empty:
+            grouped['rozdil'] = grouped['castka_kc'] - grouped['nabidka_kc']
+            grouped['cena_t_nabidka'] = (grouped['nabidka_kc'] / grouped['prodano_t']).round(0)
+            grouped['cena_t_prodej'] = (grouped['castka_kc'] / grouped['prodano_t']).round(0)
+
+            # Zobrazit jako tabulku
+            cols = st.columns(len(grouped) if len(grouped) <= 4 else 4)
+            for i, (_, row) in enumerate(grouped.iterrows()):
+                with cols[i % 4]:
+                    st.markdown(f"**{row['typ_obili']}**")
+                    st.caption(f"Množství: {row['prodano_t']:.1f} t")
+                    st.caption(f"Nabízeno: {row['nabidka_kc']:,.0f} Kč")
+                    st.caption(f"Prodáno: {row['castka_kc']:,.0f} Kč")
+                    delta = row['rozdil']
+                    color = "🟢" if delta > 0 else "🔴" if delta < 0 else "⚪"
+                    st.caption(f"{color} Rozdíl: {delta:+,.0f} Kč")
+                    st.caption(f"Cena/t: {row['cena_t_nabidka']:,.0f} → {row['cena_t_prodej']:,.0f} Kč")
+
     st.markdown("---")
 
     # === GRAF: Stav skladu ===
