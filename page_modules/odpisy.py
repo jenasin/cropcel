@@ -88,6 +88,9 @@ def show(data_manager, user, auth_manager):
     nasmlouvano_t = odpisy_nasmlouvano['prodano_t'].sum() if not odpisy_nasmlouvano.empty else 0
     nasmlouvano_kc = odpisy_nasmlouvano['castka_kc'].sum() if not odpisy_nasmlouvano.empty else 0
 
+    # Nabízeno celkem
+    nabizeno_kc = odpisy_filtered['nabidka_kc'].sum() if not odpisy_filtered.empty and 'nabidka_kc' in odpisy_filtered.columns else 0
+
     # Celkem
     celkem_prodano = prodano_t + nasmlouvano_t
     celkem_trzba = vydelano_kc + nasmlouvano_kc
@@ -114,12 +117,15 @@ def show(data_manager, user, auth_manager):
         st.metric("💰 Vyděláno", f"{vydelano_kc:,.0f} Kč")
 
     # Druhý řádek metrik
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.caption(f"💵 Čeká na platbu: {nasmlouvano_kc:,.0f} Kč")
     with col2:
-        st.caption(f"📊 Celkem tržby: {celkem_trzba:,.0f} Kč")
+        st.caption(f"🏷️ Nabízeno: {nabizeno_kc:,.0f} Kč")
     with col3:
+        rozdil = celkem_trzba - nabizeno_kc
+        st.caption(f"📊 Vyjednáno navíc: {rozdil:+,.0f} Kč")
+    with col4:
         procento = (celkem_prodano / cista_produkce * 100) if cista_produkce > 0 else 0
         st.caption(f"📈 Prodáno: {procento:.1f}% produkce")
 
