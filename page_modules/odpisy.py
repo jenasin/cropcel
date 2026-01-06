@@ -407,7 +407,7 @@ def show(data_manager, user, auth_manager):
             display_df['rozdil_kc'] = display_df['castka_kc'] - display_df['nabidka_kc']
 
         # Vybrat sloupce pro editaci
-        edit_cols = ['datum_smlouvy', 'stav', 'prodano_t', 'nabidka_kc', 'castka_kc', 'rozdil_kc', 'poznamka']
+        edit_cols = ['datum_smlouvy', 'stav', 'prodano_t', 'nabidka_kc', 'castka_kc', 'rozdil_kc', 'faktura', 'poznamka']
         edit_cols = [c for c in edit_cols if c in display_df.columns]
 
         display_df_edit = display_df[edit_cols].copy().reset_index(drop=True)
@@ -457,6 +457,10 @@ def show(data_manager, user, auth_manager):
                     disabled=True,
                     help="Rozdíl mezi prodejní cenou a nabídkou"
                 ),
+                "faktura": st.column_config.TextColumn(
+                    "Faktura",
+                    width="medium"
+                ),
                 "poznamka": st.column_config.TextColumn(
                     "Poznámka"
                 )
@@ -487,7 +491,7 @@ def show(data_manager, user, auth_manager):
                                 'nabidka_kc': row.get('nabidka_kc', 0),
                                 'castka_kc': row.get('castka_kc', 0),
                                 'poznamka': row.get('poznamka', ''),
-                                'faktura': ''
+                                'faktura': row.get('faktura', '')
                             }
                             all_odpisy = pd.concat([all_odpisy, pd.DataFrame([new_record])], ignore_index=True)
 
@@ -498,6 +502,33 @@ def show(data_manager, user, auth_manager):
                     st.rerun()
                 except Exception as e:
                     st.error(f"Chyba při ukládání: {e}")
+
+        # === STAŽENÍ PDF FAKTUR ===
+        import os
+        faktury_dir = os.path.join(data_manager.data_dir, 'faktury')
+        faktury_list = []
+        if 'faktura' in display_df.columns:
+            for _, row in display_df.iterrows():
+                faktura_name = row.get('faktura', '')
+                if faktura_name and pd.notna(faktura_name) and faktura_name != '':
+                    faktura_path = os.path.join(faktury_dir, faktura_name)
+                    if os.path.exists(faktura_path):
+                        faktury_list.append((faktura_name, faktura_path, row.get('datum_smlouvy', ''), row.get('poznamka', '')))
+
+        if faktury_list:
+            st.markdown("**📎 Faktury ke stažení:**")
+            cols = st.columns(min(len(faktury_list), 4))
+            for i, (name, path, datum, pozn) in enumerate(faktury_list):
+                with cols[i % 4]:
+                    with open(path, 'rb') as f:
+                        st.download_button(
+                            label=f"📄 {name}",
+                            data=f.read(),
+                            file_name=name,
+                            mime="application/pdf",
+                            key=f"dl_{name}_{i}",
+                            use_container_width=True
+                        )
 
         # Pro export - zobrazit s českými názvy
         display_df_show = display_df[edit_cols].copy()
