@@ -1,0 +1,16 @@
+id,odpis_id,datum_nabidky,nabidka_kc,odberatel,poznamka
+1,9,2025-01-05,1750000,Agrofert,První nabídka
+2,9,2025-01-10,1800000,Agrofert,Navýšená nabídka
+3,9,2025-01-12,1850000,Agrofert,Finální nabídka - akceptováno
+4,10,2025-02-10,1100000,ZZN Polabí,Úvodní nabídka
+5,10,2025-02-15,1150000,ZZN Polabí,Zvýšená nabídka
+6,10,2025-02-18,1200000,ZZN Polabí,Akceptováno
+7,11,2025-03-01,850000,Olma,První nabídka
+8,11,2025-03-05,900000,Olma,Druhá nabídka
+9,11,2025-03-08,950000,Olma,Akceptováno
+10,12,2025-03-25,1300000,Pekárny Praha,Úvodní nabídka
+11,12,2025-04-01,1350000,Pekárny Praha,Navýšení
+12,12,2025-04-03,1400000,Pekárny Praha,Finální cena
+13,13,2025-04-20,600000,Krmiva s.r.o.,První nabídka
+14,13,2025-04-28,650000,Krmiva s.r.o.,Druhá nabídka
+15,13,2025-04-30,680000,Krmiva s.r.o.,Akceptováno

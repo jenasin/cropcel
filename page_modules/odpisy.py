@@ -601,6 +601,56 @@ def show(data_manager, user, auth_manager):
                             use_container_width=True
                         )
 
+        # === HISTORIE NABÍDEK ===
+        st.markdown("---")
+        st.subheader("📋 Historie nabídek")
+
+        # Načíst nabídky
+        nabidky = data_manager.load_csv('nabidky.csv', force_reload=True)
+
+        if not nabidky.empty and 'id' in display_df.columns:
+            # Filtrovat nabídky pro aktuální odpisy
+            odpis_ids = display_df['id'].tolist()
+            nabidky_filtered = nabidky[nabidky['odpis_id'].isin(odpis_ids)]
+
+            if not nabidky_filtered.empty:
+                # Zajistit správné datové typy
+                nabidky_filtered['nabidka_kc'] = pd.to_numeric(nabidky_filtered['nabidka_kc'], errors='coerce').fillna(0)
+
+                # Zobrazit pro každý odpis
+                for _, odpis_row in display_df.iterrows():
+                    odpis_id = odpis_row.get('id')
+                    odpis_nabidky = nabidky_filtered[nabidky_filtered['odpis_id'] == odpis_id]
+
+                    if not odpis_nabidky.empty:
+                        poznamka = odpis_row.get('poznamka', '')
+                        datum = str(odpis_row.get('datum_smlouvy', ''))[:10]
+                        final_cena = odpis_row.get('castka_kc', 0)
+
+                        with st.expander(f"📊 {poznamka} ({datum}) - Finální cena: {final_cena:,.0f} Kč"):
+                            # Seřadit podle data
+                            odpis_nabidky_sorted = odpis_nabidky.sort_values('datum_nabidky')
+
+                            for idx, (_, nab) in enumerate(odpis_nabidky_sorted.iterrows()):
+                                col1, col2, col3, col4 = st.columns([2, 2, 3, 3])
+                                with col1:
+                                    st.text(f"{idx + 1}. nabídka")
+                                with col2:
+                                    st.text(str(nab['datum_nabidky'])[:10])
+                                with col3:
+                                    st.text(f"{nab['nabidka_kc']:,.0f} Kč")
+                                with col4:
+                                    st.text(f"{nab['odberatel']} - {nab['poznamka']}")
+
+                            # Zobrazit zlepšení
+                            first_offer = odpis_nabidky_sorted.iloc[0]['nabidka_kc']
+                            improvement = final_cena - first_offer
+                            st.success(f"✅ Vyjednáno navíc: {improvement:+,.0f} Kč (z {first_offer:,.0f} na {final_cena:,.0f} Kč)")
+            else:
+                st.info("Pro tyto prodeje nejsou zaznamenány žádné nabídky")
+        else:
+            st.info("Žádné nabídky k zobrazení")
+
         # Pro export - zobrazit s českými názvy
         display_df_show = display_df[edit_cols].copy()
         col_names = {'datum_smlouvy': 'Datum', 'stav': 'Stav', 'prodano_t': 'Množství (t)', 'nabidka_kc': 'Nabídka (Kč)', 'castka_kc': 'Prodejní cena (Kč)', 'poznamka': 'Poznámka'}
