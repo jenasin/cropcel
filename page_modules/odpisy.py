@@ -175,18 +175,37 @@ def show(data_manager, user, auth_manager):
             grouped['cena_t_nabidka'] = (grouped['nabidka_kc'] / grouped['prodano_t']).round(0)
             grouped['cena_t_prodej'] = (grouped['castka_kc'] / grouped['prodano_t']).round(0)
 
-            # Zobrazit jako tabulku
-            cols = st.columns(len(grouped) if len(grouped) <= 4 else 4)
-            for i, (_, row) in enumerate(grouped.iterrows()):
-                with cols[i % 4]:
-                    st.markdown(f"**{row['typ_obili']}**")
-                    st.caption(f"Množství: {row['prodano_t']:.1f} t")
-                    st.caption(f"Nabízeno: {row['nabidka_kc']:,.0f} Kč")
-                    st.caption(f"Prodáno: {row['castka_kc']:,.0f} Kč")
-                    delta = row['rozdil']
-                    color = "🟢" if delta > 0 else "🔴" if delta < 0 else "⚪"
-                    st.caption(f"{color} Rozdíl: {delta:+,.0f} Kč")
-                    st.caption(f"Cena/t: {row['cena_t_nabidka']:,.0f} → {row['cena_t_prodej']:,.0f} Kč")
+            # Zobrazit jako přehlednou tabulku
+            table_df = grouped[['typ_obili', 'prodano_t', 'nabidka_kc', 'castka_kc', 'rozdil', 'cena_t_nabidka', 'cena_t_prodej']].copy()
+            table_df.columns = ['Plodina', 'Prodáno (t)', 'Nabízeno (Kč)', 'Prodáno za (Kč)', 'Rozdíl (Kč)', 'Cena/t nabídka', 'Cena/t prodej']
+
+            st.dataframe(
+                table_df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Plodina": st.column_config.TextColumn("🌾 Plodina", width="medium"),
+                    "Prodáno (t)": st.column_config.NumberColumn("Prodáno (t)", format="%.1f"),
+                    "Nabízeno (Kč)": st.column_config.NumberColumn("Nabízeno (Kč)", format="%,.0f"),
+                    "Prodáno za (Kč)": st.column_config.NumberColumn("Prodáno za (Kč)", format="%,.0f"),
+                    "Rozdíl (Kč)": st.column_config.NumberColumn("Rozdíl (Kč)", format="%+,.0f"),
+                    "Cena/t nabídka": st.column_config.NumberColumn("Cena/t nabídka", format="%,.0f"),
+                    "Cena/t prodej": st.column_config.NumberColumn("Cena/t prodej", format="%,.0f"),
+                }
+            )
+
+            # Celkový souhrn
+            st.markdown("**Celkem:**")
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Prodáno", f"{grouped['prodano_t'].sum():.1f} t")
+            with col2:
+                st.metric("Nabízeno", f"{grouped['nabidka_kc'].sum():,.0f} Kč")
+            with col3:
+                st.metric("Prodáno za", f"{grouped['castka_kc'].sum():,.0f} Kč")
+            with col4:
+                total_rozdil = grouped['rozdil'].sum()
+                st.metric("Vyjednáno navíc", f"{total_rozdil:+,.0f} Kč")
 
     st.markdown("---")
 

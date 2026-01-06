@@ -266,14 +266,25 @@ def show_sidebar():
         for group_name, items in menu_groups.items():
             st.markdown(f"**{group_name}**")
 
-            for item in items:
-                # Zvýraznění vybrané položky
-                if item == st.session_state.selected_page:
-                    if st.button(f"▸ {item}", key=f"menu_{item}", use_container_width=True, type="primary"):
-                        pass  # Už jsme na této stránce
-                else:
-                    if st.button(f"  {item}", key=f"menu_{item}", use_container_width=True):
-                        st.session_state.selected_page = item
+            # Najdi index aktuální stránky v této skupině
+            current_index = None
+            if st.session_state.selected_page in items:
+                current_index = items.index(st.session_state.selected_page)
+
+            # Radio button pro každou skupinu
+            selected = st.radio(
+                f"Menu {group_name}",
+                options=items,
+                index=current_index if current_index is not None else 0,
+                key=f"radio_{group_name}",
+                label_visibility="collapsed"
+            )
+
+            # Aktualizace vybrané stránky
+            if selected and selected in items:
+                if st.session_state.selected_page in items or current_index is not None:
+                    if selected != st.session_state.selected_page:
+                        st.session_state.selected_page = selected
                         st.rerun()
 
             st.markdown("")  # Mezera mezi skupinami
