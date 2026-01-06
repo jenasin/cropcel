@@ -505,7 +505,7 @@ def show(data_manager, user, auth_manager):
 
         # === STAŽENÍ PDF FAKTUR ===
         import os
-        faktury_dir = os.path.join(data_manager.data_dir, 'faktury')
+        faktury_dir = os.path.join(data_manager.base_path, 'faktury')
         faktury_list = []
         if 'faktura' in display_df.columns:
             for _, row in display_df.iterrows():
