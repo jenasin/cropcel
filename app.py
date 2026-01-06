@@ -260,34 +260,41 @@ def show_sidebar():
         if 'selected_page' not in st.session_state:
             st.session_state.selected_page = 'Přehled Tekro'
 
-        # Menu rozdělené do skupin
+        # Menu rozdělené do skupin - ale jeden radio button
         menu_groups = config.MENU_GROUPS.get(user['role'], {})
 
+        # Vytvořit seznam všech položek s nadpisy skupin
+        all_options = []
         for group_name, items in menu_groups.items():
-            st.markdown(f"**{group_name}**")
+            all_options.append(f"**{group_name}**")  # Nadpis skupiny
+            all_options.extend(items)
 
-            # Najdi index aktuální stránky v této skupině
-            current_index = None
-            if st.session_state.selected_page in items:
-                current_index = items.index(st.session_state.selected_page)
+        # Najdi index aktuální stránky
+        current_index = 0
+        if st.session_state.selected_page in all_options:
+            current_index = all_options.index(st.session_state.selected_page)
+        else:
+            # Najít první položku, která není nadpis
+            for i, opt in enumerate(all_options):
+                if not opt.startswith("**"):
+                    current_index = i
+                    break
 
-            # Radio button pro každou skupinu
-            selected = st.radio(
-                f"Menu {group_name}",
-                options=items,
-                index=current_index if current_index is not None else 0,
-                key=f"radio_{group_name}",
-                label_visibility="collapsed"
-            )
+        # Jeden radio button pro celé menu
+        selected = st.radio(
+            "Navigace",
+            options=all_options,
+            index=current_index,
+            key="main_menu",
+            label_visibility="collapsed",
+            format_func=lambda x: x.replace("**", "") if x.startswith("**") else f"  {x}"
+        )
 
-            # Aktualizace vybrané stránky
-            if selected and selected in items:
-                if st.session_state.selected_page in items or current_index is not None:
-                    if selected != st.session_state.selected_page:
-                        st.session_state.selected_page = selected
-                        st.rerun()
-
-            st.markdown("")  # Mezera mezi skupinami
+        # Aktualizace vybrané stránky (ignorovat nadpisy skupin)
+        if selected and not selected.startswith("**"):
+            if selected != st.session_state.selected_page:
+                st.session_state.selected_page = selected
+                st.rerun()
 
         st.markdown("---")
 
