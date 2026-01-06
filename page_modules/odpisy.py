@@ -514,25 +514,37 @@ def show(data_manager, user, auth_manager):
         faktury_dir = os.path.join(data_manager.base_path, 'faktury')
         faktury_list = []
         if 'faktura' in display_df.columns:
-            for _, row in display_df.iterrows():
+            for idx, row in display_df.iterrows():
                 faktura_name = row.get('faktura', '')
                 if faktura_name and pd.notna(faktura_name) and faktura_name != '':
                     faktura_path = os.path.join(faktury_dir, faktura_name)
                     if os.path.exists(faktura_path):
-                        faktury_list.append((faktura_name, faktura_path, row.get('datum_smlouvy', ''), row.get('poznamka', '')))
+                        faktury_list.append({
+                            'name': faktura_name,
+                            'path': faktura_path,
+                            'datum': str(row.get('datum_smlouvy', ''))[:10],
+                            'poznamka': row.get('poznamka', ''),
+                            'castka': row.get('castka_kc', 0)
+                        })
 
         if faktury_list:
-            st.markdown("**📎 Faktury ke stažení:**")
-            cols = st.columns(min(len(faktury_list), 4))
-            for i, (name, path, datum, pozn) in enumerate(faktury_list):
-                with cols[i % 4]:
-                    with open(path, 'rb') as f:
+            st.markdown("### 📎 Faktury ke stažení")
+            for i, f in enumerate(faktury_list):
+                col1, col2, col3, col4 = st.columns([2, 3, 2, 2])
+                with col1:
+                    st.text(f['datum'])
+                with col2:
+                    st.text(f['poznamka'][:30] + '...' if len(str(f['poznamka'])) > 30 else f['poznamka'])
+                with col3:
+                    st.text(f"{f['castka']:,.0f} Kč")
+                with col4:
+                    with open(f['path'], 'rb') as file:
                         st.download_button(
-                            label=f"📄 {name}",
-                            data=f.read(),
-                            file_name=name,
+                            label=f"📥 {f['name']}",
+                            data=file.read(),
+                            file_name=f['name'],
                             mime="application/pdf",
-                            key=f"dl_{name}_{i}",
+                            key=f"dl_{f['name']}_{i}",
                             use_container_width=True
                         )
 
