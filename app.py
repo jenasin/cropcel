@@ -260,39 +260,44 @@ def show_sidebar():
         if 'selected_page' not in st.session_state:
             st.session_state.selected_page = 'Přehled Tekro'
 
-        # Menu rozdělené do skupin - ale jeden radio button
+        # Menu rozdělené do skupin
         menu_groups = config.MENU_GROUPS.get(user['role'], {})
 
-        # Vytvořit seznam všech položek s nadpisy skupin
-        all_options = []
-        for group_name, items in menu_groups.items():
-            all_options.append(f"**{group_name}**")  # Nadpis skupiny
-            all_options.extend(items)
+        # Flat seznam všech položek pro index
+        all_items = []
+        for items in menu_groups.values():
+            all_items.extend(items)
 
         # Najdi index aktuální stránky
         current_index = 0
-        if st.session_state.selected_page in all_options:
-            current_index = all_options.index(st.session_state.selected_page)
-        else:
-            # Najít první položku, která není nadpis
-            for i, opt in enumerate(all_options):
-                if not opt.startswith("**"):
-                    current_index = i
-                    break
+        if st.session_state.selected_page in all_items:
+            current_index = all_items.index(st.session_state.selected_page)
 
-        # Jeden radio button pro celé menu
-        selected = st.radio(
-            "Navigace",
-            options=all_options,
-            index=current_index,
-            key="main_menu",
-            label_visibility="collapsed",
-            format_func=lambda x: x.replace("**", "") if x.startswith("**") else f"  {x}"
-        )
+        # Zobrazit každou skupinu s nadpisem
+        for group_name, items in menu_groups.items():
+            st.markdown(f"**{group_name}**")
 
-        # Aktualizace vybrané stránky (ignorovat nadpisy skupin)
-        if selected and not selected.startswith("**"):
-            if selected != st.session_state.selected_page:
+            # Zjistit, zda je aktuální stránka v této skupině
+            group_index = None
+            if st.session_state.selected_page in items:
+                group_index = items.index(st.session_state.selected_page)
+
+            # Radio pro tuto skupinu
+            selected = st.radio(
+                f"Menu {group_name}",
+                options=items,
+                index=group_index,
+                key=f"radio_{group_name}",
+                label_visibility="collapsed"
+            )
+
+            # Pokud byla vybrána položka v této skupině
+            if selected and group_index is not None:
+                if selected != st.session_state.selected_page:
+                    st.session_state.selected_page = selected
+                    st.rerun()
+            elif selected and st.session_state.selected_page not in items:
+                # Kliknutí na položku v jiné skupině
                 st.session_state.selected_page = selected
                 st.rerun()
 
