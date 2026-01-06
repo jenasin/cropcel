@@ -14,10 +14,16 @@ def show(data_manager, user, auth_manager):
     st.title("📝 Odpisy (prodeje ze skladu)")
     st.markdown("---")
 
-    # Načtení dat
+    # Načtení dat (force reload pro aktuální data)
     businesses = data_manager.get_businesses()
     fields = data_manager.get_fields()
-    odpisy = data_manager.get_odpisy()
+    odpisy = data_manager.load_csv('odpisy.csv', force_reload=True)
+
+    # Zajistit správné datové typy
+    if not odpisy.empty:
+        for col in ['castka_kc', 'nabidka_kc', 'prodano_t']:
+            if col in odpisy.columns:
+                odpisy[col] = pd.to_numeric(odpisy[col], errors='coerce').fillna(0)
 
     # Filtrovat podniky podle přiřazení uživatele
     user_podniky = user.get('podniky', [])
