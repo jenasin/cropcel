@@ -12,3 +12,7 @@ id,podnik_id,rok,datum_smlouvy,castka_kc,nabidka_kc,prodano_t,faktura,poznamka,s
 11,1,2025,2025-03-10,950000,900000,150.0,,Prodej řepky - smlouva,nasmlouvano
 12,1,2025,2025-04-05,1400000,1350000,220.0,,Prodej pšenice - pekárny,nasmlouvano
 13,1,2025,2025-05-01,680000,650000,100.0,,Prodej kukuřice - krmiva,nasmlouvano
+14,1,2026,2026-01-10,1950000,1850000,300.0,faktura_2026_001.pdf,Prodej pšenice ozimé - Agrofert,prodano
+15,1,2026,2026-01-25,1350000,1300000,220.0,faktura_2026_002.pdf,Prodej ječmene - ZZN,prodano
+16,1,2026,2026-02-05,2250000,2100000,380.0,,Prodej řepky - Olma,nasmlouvano
+17,1,2026,2026-02-20,890000,850000,140.0,,Prodej kukuřice - krmiva,nasmlouvano
