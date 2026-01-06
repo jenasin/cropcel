@@ -1,14 +1,14 @@
-id,podnik_id,rok,datum_smlouvy,castka_kc,prodano_t,faktura,poznamka,stav
-1,1,2024,2024-08-15,1250000,250.0,faktura_2024_001.pdf,Prodej pšenice ozimé - Agrofert,prodano
-2,1,2024,2024-09-10,890000,180.5,,Prodej ječmene - ZZN,prodano
-3,1,2024,2024-09-25,2100000,350.0,faktura_2024_003.pdf,Prodej řepky - Olma,prodano
-4,1,2024,2024-10-05,450000,95.0,,Prodej kukuřice,prodano
-5,1,2024,2024-10-20,1680000,320.0,faktura_2024_005.pdf,Prodej pšenice - pekárny,prodano
-6,1,2023,2023-09-01,980000,200.0,,Prodej pšenice 2023,prodano
-7,1,2023,2023-10-15,1450000,290.0,faktura_2023_002.pdf,Prodej ječmene 2023,prodano
-8,2,2024,2024-09-20,750000,150.0,,Šťáhlavy - prodej pšenice,prodano
-9,1,2025,2025-01-15,1850000,280.0,faktura_2025_001.pdf,Prodej pšenice - Agrofert,prodano
-10,1,2025,2025-02-20,1200000,200.0,,Prodej ječmene - ZZN,prodano
-11,1,2025,2025-03-10,950000,150.0,,Prodej řepky - smlouva,nasmlouvano
-12,1,2025,2025-04-05,1400000,220.0,,Prodej pšenice - pekárny,nasmlouvano
-13,1,2025,2025-05-01,680000,100.0,,Prodej kukuřice - krmiva,nasmlouvano
+id,podnik_id,rok,datum_smlouvy,castka_kc,nabidka_kc,prodano_t,faktura,poznamka,stav
+1,1,2024,2024-08-15,1250000,1200000,250.0,faktura_2024_001.pdf,Prodej pšenice ozimé - Agrofert,prodano
+2,1,2024,2024-09-10,890000,850000,180.5,,Prodej ječmene - ZZN,prodano
+3,1,2024,2024-09-25,2100000,2000000,350.0,faktura_2024_003.pdf,Prodej řepky - Olma,prodano
+4,1,2024,2024-10-05,450000,420000,95.0,,Prodej kukuřice,prodano
+5,1,2024,2024-10-20,1680000,1600000,320.0,faktura_2024_005.pdf,Prodej pšenice - pekárny,prodano
+6,1,2023,2023-09-01,980000,950000,200.0,,Prodej pšenice 2023,prodano
+7,1,2023,2023-10-15,1450000,1400000,290.0,faktura_2023_002.pdf,Prodej ječmene 2023,prodano
+8,2,2024,2024-09-20,750000,700000,150.0,,Šťáhlavy - prodej pšenice,prodano
+9,1,2025,2025-01-15,1850000,1800000,280.0,faktura_2025_001.pdf,Prodej pšenice - Agrofert,prodano
+10,1,2025,2025-02-20,1200000,1150000,200.0,,Prodej ječmene - ZZN,prodano
+11,1,2025,2025-03-10,950000,900000,150.0,,Prodej řepky - smlouva,nasmlouvano
+12,1,2025,2025-04-05,1400000,1350000,220.0,,Prodej pšenice - pekárny,nasmlouvano
+13,1,2025,2025-05-01,680000,650000,100.0,,Prodej kukuřice - krmiva,nasmlouvano

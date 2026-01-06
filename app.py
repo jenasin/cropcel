@@ -256,36 +256,27 @@ def show_sidebar():
         st.caption(f"{role_color} {user['role'].upper()}")
         st.markdown("---")
 
-        # Menu položky podle role
-        menu_items = config.MENU_ITEMS.get(user['role'], [])
-
-        # Vytvořit options pro radio button
-        options = [f"{item['icon']} {item['name']}" for item in menu_items]
-        names = [item['name'] for item in menu_items]
-
         # Inicializace vybrané stránky
         if 'selected_page' not in st.session_state:
             st.session_state.selected_page = 'Přehled Tekro'
 
-        # Najdi index aktuální stránky
-        current_index = 0
-        if st.session_state.selected_page in names:
-            current_index = names.index(st.session_state.selected_page)
+        # Menu rozdělené do skupin
+        menu_groups = config.MENU_GROUPS.get(user['role'], {})
 
-        # Radio button menu
-        selected = st.radio(
-            "Navigace",
-            options=options,
-            index=current_index,
-            label_visibility="collapsed"
-        )
+        for group_name, items in menu_groups.items():
+            st.markdown(f"**{group_name}**")
 
-        # Aktualizace vybrané stránky
-        if selected:
-            selected_name = names[options.index(selected)]
-            if selected_name != st.session_state.selected_page:
-                st.session_state.selected_page = selected_name
-                st.rerun()
+            for item in items:
+                # Zvýraznění vybrané položky
+                if item == st.session_state.selected_page:
+                    if st.button(f"▸ {item}", key=f"menu_{item}", use_container_width=True, type="primary"):
+                        pass  # Už jsme na této stránce
+                else:
+                    if st.button(f"  {item}", key=f"menu_{item}", use_container_width=True):
+                        st.session_state.selected_page = item
+                        st.rerun()
+
+            st.markdown("")  # Mezera mezi skupinami
 
         st.markdown("---")
 

@@ -334,7 +334,8 @@ def show(data_manager, user, auth_manager):
                                    format_func=lambda x: '📝 Nasmlouváno' if x == 'nasmlouvano' else '✅ Prodáno')
 
             with col2:
-                castka_kc = st.number_input("Částka (Kč)*", min_value=0, step=1000, value=0)
+                nabidka_kc = st.number_input("Nabízená cena (Kč)", min_value=0, step=1000, value=0, help="Cena, za kterou bylo nabízeno")
+                castka_kc = st.number_input("Prodejní cena (Kč)*", min_value=0, step=1000, value=0)
                 poznamka = st.text_area("Poznámka")
                 faktura = st.file_uploader("Faktura (volitelné)", type=['pdf', 'jpg', 'png'])
 
@@ -357,6 +358,7 @@ def show(data_manager, user, auth_manager):
                         'rok': selected_year,
                         'datum_smlouvy': datum_smlouvy.strftime('%Y-%m-%d'),
                         'castka_kc': castka_kc,
+                        'nabidka_kc': nabidka_kc,
                         'prodano_t': prodano_t,
                         'faktura': faktura.name if faktura else '',
                         'poznamka': poznamka,
@@ -395,7 +397,7 @@ def show(data_manager, user, auth_manager):
             display_df['stav_export'] = display_df['stav'].map(stav_map_export).fillna(display_df['stav'])
 
         # Vybrat sloupce pro editaci
-        edit_cols = ['datum_smlouvy', 'stav', 'prodano_t', 'castka_kc', 'poznamka']
+        edit_cols = ['datum_smlouvy', 'stav', 'prodano_t', 'nabidka_kc', 'castka_kc', 'poznamka']
         edit_cols = [c for c in edit_cols if c in display_df.columns]
 
         display_df_edit = display_df[edit_cols].copy().reset_index(drop=True)
@@ -428,8 +430,13 @@ def show(data_manager, user, auth_manager):
                     min_value=0.0,
                     required=True
                 ),
+                "nabidka_kc": st.column_config.NumberColumn(
+                    "Nabídka (Kč)",
+                    format="%d",
+                    min_value=0
+                ),
                 "castka_kc": st.column_config.NumberColumn(
-                    "Částka (Kč)",
+                    "Prodejní cena (Kč)",
                     format="%d",
                     min_value=0,
                     required=True
@@ -461,6 +468,7 @@ def show(data_manager, user, auth_manager):
                                 'datum_smlouvy': str(row.get('datum_smlouvy', ''))[:10],
                                 'stav': row.get('stav', 'nasmlouvano'),
                                 'prodano_t': row.get('prodano_t', 0),
+                                'nabidka_kc': row.get('nabidka_kc', 0),
                                 'castka_kc': row.get('castka_kc', 0),
                                 'poznamka': row.get('poznamka', ''),
                                 'faktura': ''
@@ -477,31 +485,39 @@ def show(data_manager, user, auth_manager):
 
         # Pro export - zobrazit s českými názvy
         display_df_show = display_df[edit_cols].copy()
-        col_names = {'datum_smlouvy': 'Datum', 'stav': 'Stav', 'prodano_t': 'Množství (t)', 'castka_kc': 'Částka (Kč)', 'poznamka': 'Poznámka'}
+        col_names = {'datum_smlouvy': 'Datum', 'stav': 'Stav', 'prodano_t': 'Množství (t)', 'nabidka_kc': 'Nabídka (Kč)', 'castka_kc': 'Prodejní cena (Kč)', 'poznamka': 'Poznámka'}
         display_df_show.columns = [col_names.get(c, c) for c in edit_cols]
 
         # Vypočítat cenu za tunu pro export
-        if 'Množství (t)' in display_df_show.columns and 'Částka (Kč)' in display_df_show.columns:
-            display_df_show['Cena/t (Kč)'] = (display_df_show['Částka (Kč)'] / display_df_show['Množství (t)']).round(0)
+        if 'Množství (t)' in display_df_show.columns and 'Prodejní cena (Kč)' in display_df_show.columns:
+            display_df_show['Cena/t (Kč)'] = (display_df_show['Prodejní cena (Kč)'] / display_df_show['Množství (t)']).round(0)
 
         # === TLAČÍTKA PRO EXPORT ===
         st.markdown("---")
         col1, col2, col3, col4 = st.columns([1, 1, 1, 3])
 
         # Připravit data pro export
-        export_df = display_df[['datum_smlouvy', 'stav_export', 'prodano_t', 'castka_kc', 'poznamka']].copy()
-        export_df.columns = ['Datum', 'Stav', 'Množství (t)', 'Částka (Kč)', 'Poznámka']
-        export_df['Cena/t (Kč)'] = (export_df['Částka (Kč)'] / export_df['Množství (t)']).round(0)
+        export_cols = ['datum_smlouvy', 'stav_export', 'prodano_t', 'nabidka_kc', 'castka_kc', 'poznamka']
+        export_cols = [c for c in export_cols if c in display_df.columns]
+        export_df = display_df[export_cols].copy()
+        export_col_names = {'datum_smlouvy': 'Datum', 'stav_export': 'Stav', 'prodano_t': 'Množství (t)', 'nabidka_kc': 'Nabídka (Kč)', 'castka_kc': 'Prodejní cena (Kč)', 'poznamka': 'Poznámka'}
+        export_df.columns = [export_col_names.get(c, c) for c in export_cols]
+        if 'Prodejní cena (Kč)' in export_df.columns and 'Množství (t)' in export_df.columns:
+            export_df['Cena/t (Kč)'] = (export_df['Prodejní cena (Kč)'] / export_df['Množství (t)']).round(0)
 
         # Přidat souhrn na konec
-        souhrn_row = pd.DataFrame([{
+        souhrn_data = {
             'Datum': 'CELKEM',
             'Stav': '',
-            'Množství (t)': export_df['Množství (t)'].sum(),
-            'Částka (Kč)': export_df['Částka (Kč)'].sum(),
-            'Poznámka': '',
-            'Cena/t (Kč)': export_df['Částka (Kč)'].sum() / export_df['Množství (t)'].sum() if export_df['Množství (t)'].sum() > 0 else 0
-        }])
+            'Množství (t)': export_df['Množství (t)'].sum() if 'Množství (t)' in export_df.columns else 0,
+            'Poznámka': ''
+        }
+        if 'Nabídka (Kč)' in export_df.columns:
+            souhrn_data['Nabídka (Kč)'] = export_df['Nabídka (Kč)'].sum()
+        if 'Prodejní cena (Kč)' in export_df.columns:
+            souhrn_data['Prodejní cena (Kč)'] = export_df['Prodejní cena (Kč)'].sum()
+            souhrn_data['Cena/t (Kč)'] = souhrn_data['Prodejní cena (Kč)'] / souhrn_data['Množství (t)'] if souhrn_data['Množství (t)'] > 0 else 0
+        souhrn_row = pd.DataFrame([souhrn_data])
         export_df_with_sum = pd.concat([export_df, souhrn_row], ignore_index=True)
 
         with col1:

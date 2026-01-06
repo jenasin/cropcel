@@ -11,70 +11,88 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 APP_TITLE = "Tekro sklizeň"
 APP_ICON = "🌾"
 
-# Menu položky podle rolí
+# Menu položky podle rolí - rozděleno do skupin
+MENU_GROUPS = {
+    'admin': {
+        'Přehledy': [
+            'Přehled Tekro',
+            'Plodiny Tekro',
+            'Osevní plány Tekro',
+            'Podniky Tekro',
+            'Pozemky Tekro',
+            'Srážky Tekro',
+            'Přehled podniku',
+            'Statistiky',
+            'Odrůdy',
+        ],
+        'Správa': [
+            'Pole',
+            'Pozemky',
+            'Typy pozemků',
+            'Sběrná místa',
+            'Sběrné srážky',
+            'Odpisy',
+            'Souhrn plodin',
+            'Roky',
+            'Uživatelé',
+            'Přístup k podnikům',
+            'Podniky',
+            'Plodiny',
+            'Odrůdy osiva',
+            'Nástěnka',
+        ]
+    },
+    'editor': {
+        'Přehledy': [
+            'Přehled Tekro',
+            'Plodiny Tekro',
+            'Osevní plány Tekro',
+            'Podniky Tekro',
+            'Pozemky Tekro',
+            'Srážky Tekro',
+            'Přehled podniku',
+            'Statistiky',
+            'Odrůdy',
+        ],
+        'Správa': [
+            'Zadávání dat',
+            'Pole',
+            'Pozemky',
+            'Typy pozemků',
+            'Sběrná místa',
+            'Sběrné srážky',
+            'Odpisy',
+            'Souhrn plodin',
+            'Roky',
+            'Podniky',
+            'Plodiny',
+            'Odrůdy osiva',
+            'Nástěnka',
+        ]
+    },
+    'watcher': {
+        'Přehledy': [
+            'Přehled Tekro',
+            'Plodiny Tekro',
+            'Osevní plány Tekro',
+            'Podniky Tekro',
+            'Pozemky Tekro',
+            'Přehled podniku',
+            'Odrůdy',
+        ],
+        'Správa': [
+            'Pole',
+            'Souhrn plodin',
+            'Plodiny',
+            'Nástěnka',
+        ]
+    }
+}
+
+# Pro zpětnou kompatibilitu - flat list všech položek
 MENU_ITEMS = {
-    'admin': [
-        {'name': 'Přehled Tekro', 'icon': ''},
-        {'name': 'Plodiny Tekro', 'icon': ''},
-        {'name': 'Osevní plány Tekro', 'icon': ''},
-        {'name': 'Podniky Tekro', 'icon': ''},
-        {'name': 'Pozemky Tekro', 'icon': ''},
-        {'name': 'Srážky Tekro', 'icon': ''},
-        {'name': 'Přehled podniku', 'icon': ''},
-        {'name': 'Statistiky', 'icon': ''},
-        {'name': 'Odrůdy', 'icon': ''},
-        {'name': 'Pole', 'icon': ''},
-        {'name': 'Pozemky', 'icon': ''},
-        {'name': 'Typy pozemků', 'icon': ''},
-        {'name': 'Sběrná místa', 'icon': ''},
-        {'name': 'Sběrné srážky', 'icon': ''},
-        {'name': 'Odpisy', 'icon': ''},
-        {'name': 'Souhrn plodin', 'icon': ''},
-        {'name': 'Roky', 'icon': ''},
-        {'name': 'Uživatelé', 'icon': ''},
-        {'name': 'Přístup k podnikům', 'icon': ''},
-        {'name': 'Podniky', 'icon': ''},
-        {'name': 'Plodiny', 'icon': ''},
-        {'name': 'Odrůdy osiva', 'icon': ''},
-        {'name': 'Nástěnka', 'icon': ''},
-    ],
-    'editor': [
-        {'name': 'Přehled Tekro', 'icon': ''},
-        {'name': 'Plodiny Tekro', 'icon': ''},
-        {'name': 'Osevní plány Tekro', 'icon': ''},
-        {'name': 'Podniky Tekro', 'icon': ''},
-        {'name': 'Pozemky Tekro', 'icon': ''},
-        {'name': 'Srážky Tekro', 'icon': ''},
-        {'name': 'Zadávání dat', 'icon': ''},
-        {'name': 'Přehled podniku', 'icon': ''},
-        {'name': 'Statistiky', 'icon': ''},
-        {'name': 'Odrůdy', 'icon': ''},
-        {'name': 'Pole', 'icon': ''},
-        {'name': 'Pozemky', 'icon': ''},
-        {'name': 'Typy pozemků', 'icon': ''},
-        {'name': 'Sběrná místa', 'icon': ''},
-        {'name': 'Sběrné srážky', 'icon': ''},
-        {'name': 'Odpisy', 'icon': ''},
-        {'name': 'Souhrn plodin', 'icon': ''},
-        {'name': 'Roky', 'icon': ''},
-        {'name': 'Podniky', 'icon': ''},
-        {'name': 'Plodiny', 'icon': ''},
-        {'name': 'Odrůdy osiva', 'icon': ''},
-        {'name': 'Nástěnka', 'icon': ''},
-    ],
-    'watcher': [
-        {'name': 'Přehled Tekro', 'icon': ''},
-        {'name': 'Plodiny Tekro', 'icon': ''},
-        {'name': 'Osevní plány Tekro', 'icon': ''},
-        {'name': 'Podniky Tekro', 'icon': ''},
-        {'name': 'Pozemky Tekro', 'icon': ''},
-        {'name': 'Přehled podniku', 'icon': ''},
-        {'name': 'Odrůdy', 'icon': ''},
-        {'name': 'Pole', 'icon': ''},
-        {'name': 'Souhrn plodin', 'icon': ''},
-        {'name': 'Plodiny', 'icon': ''},
-        {'name': 'Nástěnka', 'icon': ''},
-    ]
+    role: [{'name': item, 'icon': ''} for group in groups.values() for item in group]
+    for role, groups in MENU_GROUPS.items()
 }
 
 # Mapování stránek na soubory
