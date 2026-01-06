@@ -14,10 +14,10 @@ def show(data_manager, user, auth_manager):
     crops = data_manager.get_crops()
 
     # Tlačítka akcí
-    col1, col2, col3 = st.columns([1, 1, 4])
+    col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("➕ Přidat novou", use_container_width=True):
+        if st.button("➕ Přidat novou plodinu", use_container_width=True):
             st.session_state.show_add_crop_form = True
 
     with col2:

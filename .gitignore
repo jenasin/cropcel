@@ -39,3 +39,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Config (API tokens a runtime state)
+config/

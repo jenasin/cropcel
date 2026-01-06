@@ -107,8 +107,14 @@ def show(data_manager, user, auth_manager):
         # Převést ID podniků na názvy
         if not businesses.empty and 'business_ids' in display_df.columns:
             business_id_to_name = {row['id']: row['nazev'] for _, row in businesses.iterrows()}
+            all_business_names = ', '.join(businesses.sort_values('poradi')['nazev'].tolist())
 
-            def convert_ids_to_names(ids_str):
+            def convert_ids_to_names(row):
+                # Admin má automaticky všechny podniky
+                if row.get('role') == 'admin':
+                    return 'Všechny'
+
+                ids_str = row.get('business_ids')
                 if pd.isna(ids_str) or ids_str == '' or ids_str is None:
                     return ''
                 try:
@@ -127,7 +133,7 @@ def show(data_manager, user, auth_manager):
                 except:
                     return str(ids_str)
 
-            display_df['Podniky'] = display_df['business_ids'].apply(convert_ids_to_names)
+            display_df['Podniky'] = display_df.apply(convert_ids_to_names, axis=1)
             display_df = display_df.drop(columns=['business_ids'])
 
         edited_df = st.data_editor(

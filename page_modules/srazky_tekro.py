@@ -247,6 +247,75 @@ def render_detail(data_manager, user, year_data, selected_year, podnik_id, mesic
     # Možnost zadávání dat (pro editora/admina)
     if user['role'] in ['admin', 'editor']:
         st.markdown("---")
+
+        # Tlačítko pro stažení z meteostanice (pokud má podnik sensor_addr)
+        actual_podnik_id = podnik_id if isinstance(podnik_id, (int, float)) else businesses[businesses['nazev'] == podnik_id]['id'].iloc[0]
+        podnik_row = businesses[businesses['id'] == actual_podnik_id]
+
+        if not podnik_row.empty and 'sensor_addr' in businesses.columns:
+            sensor_addr = podnik_row.iloc[0].get('sensor_addr')
+            if sensor_addr and pd.notna(sensor_addr) and sensor_addr != '':
+                st.subheader("Stáhnout z meteostanice")
+                if st.button("Stáhnout srážky za dnešek", key="fetch_api_rain"):
+                    from utils.agdata_api import get_api_token, get_today_weather
+
+                    if not get_api_token():
+                        st.error("API token není nastaven!")
+                    else:
+                        with st.spinner("Stahuji dnešní data z meteostanice..."):
+                            weather = get_today_weather(sensor_addr, fallback_yesterday=False)
+
+                        if 'error' in weather:
+                            st.error(f"Chyba: {weather['error']}")
+                        else:
+                            rain = weather.get('rain_mm')
+                            api_date = weather.get('date')
+                            temp = weather.get('temp_c')
+
+                            if rain is None:
+                                rain = 0.0
+
+                            # Uložit do databáze
+                            misto_mapping = {1: 30, 2: 29, 3: 28, 4: 27, 5: 26, 6: 25, 8: 42, 9: 43}
+                            misto_id = misto_mapping.get(int(actual_podnik_id), 30)
+
+                            srazky_df = data_manager.get_sbernasrazky()
+
+                            # Zkontrolovat existující záznam
+                            existing = srazky_df[
+                                (srazky_df['PodnikID'] == actual_podnik_id) &
+                                (srazky_df['Datum'].astype(str) == api_date)
+                            ]
+
+                            if not existing.empty:
+                                idx = existing.index[0]
+                                srazky_df.loc[idx, 'Objem'] = rain
+                                msg = f"Aktualizováno: {api_date} - {rain:.1f} mm"
+                            else:
+                                new_id = srazky_df['id'].max() + 1 if not srazky_df.empty else 1
+                                new_row = {
+                                    'id': new_id,
+                                    'MistoID': misto_id,
+                                    'PodnikID': actual_podnik_id,
+                                    'Datum': api_date,
+                                    'Objem': rain
+                                }
+                                srazky_df = pd.concat([srazky_df, pd.DataFrame([new_row])], ignore_index=True)
+                                msg = f"Uloženo: {api_date} - {rain:.1f} mm"
+
+                            data_manager.save_sbernasrazky(srazky_df)
+
+                            if temp is not None:
+                                st.success(f"{msg} (teplota: {temp:.1f}°C)")
+                            else:
+                                st.success(msg)
+
+                            import time
+                            time.sleep(2)
+                            st.rerun()
+
+                st.markdown("---")
+
         st.subheader("Zadat novou srážku")
 
         col1, col2, col3 = st.columns(3)
@@ -267,10 +336,18 @@ def render_detail(data_manager, user, year_data, selected_year, podnik_id, mesic
                 # Vytvořit datum
                 datum = date(selected_year, mesic_num, den)
 
+                # Zjistit PodnikID
+                actual_podnik_id = podnik_id if isinstance(podnik_id, (int, float)) else businesses[businesses['nazev'] == podnik_id]['id'].iloc[0]
+
+                # Výchozí MistoID pro podniky
+                misto_mapping = {1: 30, 2: 29, 3: 28, 4: 27, 5: 26, 6: 25, 8: 42, 9: 43}
+                misto_id = misto_mapping.get(int(actual_podnik_id), 30)
+
                 # Přidat do CSV
                 new_row = {
                     'id': data_manager.get_sbernasrazky()['id'].max() + 1 if not data_manager.get_sbernasrazky().empty else 1,
-                    'PodnikID': podnik_id if isinstance(podnik_id, (int, float)) else businesses[businesses['nazev'] == podnik_id]['id'].iloc[0],
+                    'MistoID': misto_id,
+                    'PodnikID': actual_podnik_id,
                     'Datum': datum.strftime('%Y-%m-%d'),
                     'Objem': objem
                 }

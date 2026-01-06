@@ -62,6 +62,181 @@ def show_login_page():
         st.info("💡 Demo přístupy:\n- Admin: adminpetr\n- Editor: agronom\n- Watcher: zemedelec")
 
 
+def fetch_and_save_rain(biz_id: int, sensor_addr: str, dm, use_yesterday: bool = False) -> tuple[bool, str, float | None]:
+    """Stáhne a uloží srážky pro podnik. Vrací (success, message, rain_mm)
+
+    Args:
+        use_yesterday: Pokud True, stáhne včerejší data (pro automatické stahování v 5:00)
+    """
+    from utils.agdata_api import get_today_weather, get_yesterday_weather
+
+    if use_yesterday:
+        weather = get_yesterday_weather(sensor_addr)
+    else:
+        weather = get_today_weather(sensor_addr, fallback_yesterday=False)
+
+    if 'error' in weather:
+        return False, f"Chyba: {weather['error']}", None
+
+    rain = weather.get('rain_mm')
+    if rain is None:
+        rain = 0.0  # Žádné srážky = 0 mm
+
+    # Použít datum z API (může být včerejší pokud dnešní data nejsou k dispozici)
+    api_date = weather.get('date')
+
+    # Zkontrolovat, zda už existuje záznam pro toto datum
+    srazky_df = dm.get_sbernasrazky()
+    today_str = api_date
+
+    existing = srazky_df[
+        (srazky_df['PodnikID'] == biz_id) &
+        (srazky_df['Datum'].astype(str) == today_str)
+    ]
+
+    if not existing.empty:
+        # Aktualizovat existující záznam
+        idx = existing.index[0]
+        srazky_df.loc[idx, 'Objem'] = rain
+        dm.save_sbernasrazky(srazky_df)
+        return True, f"{api_date}: {rain:.1f} mm (aktualizováno)", rain
+
+    # Přidat nový záznam
+    misto_mapping = {1: 30, 2: 29, 3: 28, 4: 27, 5: 26, 6: 25, 8: 42, 9: 43}
+    misto_id = misto_mapping.get(int(biz_id), 30)
+
+    new_id = srazky_df['id'].max() + 1 if not srazky_df.empty else 1
+    new_row = {
+        'id': new_id,
+        'MistoID': misto_id,
+        'PodnikID': biz_id,
+        'Datum': today_str,
+        'Objem': rain
+    }
+    srazky_df = pd.concat([srazky_df, pd.DataFrame([new_row])], ignore_index=True)
+    dm.save_sbernasrazky(srazky_df)
+
+    return True, f"{api_date}: {rain:.1f} mm", rain
+
+
+def check_auto_fetch():
+    """Zkontroluje a provede automatické stažení v 5:00 (data z předchozího dne)"""
+    from datetime import datetime, date
+    import os
+
+    dm = get_data_manager()
+    businesses = dm.get_businesses()
+
+    if 'sensor_addr' not in businesses.columns:
+        return
+
+    businesses_with_sensor = businesses[
+        businesses['sensor_addr'].notna() &
+        (businesses['sensor_addr'] != '')
+    ]
+
+    if businesses_with_sensor.empty:
+        return
+
+    # Flag soubor pro sledování denního stažení
+    flag_file = os.path.join(os.path.dirname(__file__), "config", "last_fetch.txt")
+    today_str = date.today().strftime('%Y-%m-%d')
+    now = datetime.now()
+
+    # Zkontrolovat, zda už bylo dnes staženo
+    last_fetch_date = None
+    if os.path.exists(flag_file):
+        with open(flag_file, 'r') as f:
+            last_fetch_date = f.read().strip()
+
+    already_fetched_today = (last_fetch_date == today_str)
+
+    # Podmínky pro automatické stažení:
+    # Je 5:00 nebo později a ještě nebylo dnes staženo
+    # (stahuje data z předchozího dne, která jsou v 5:00 již kompletní)
+    should_fetch = False
+
+    if not already_fetched_today:
+        if now.hour >= 5:
+            should_fetch = True
+            st.toast("Automatické stahování srážek z předchozího dne...", icon="🌧️")
+
+    if should_fetch:
+        for _, biz in businesses_with_sensor.iterrows():
+            fetch_and_save_rain(int(biz['id']), biz['sensor_addr'], dm, use_yesterday=True)
+
+        # Zapsat flag
+        os.makedirs(os.path.dirname(flag_file), exist_ok=True)
+        with open(flag_file, 'w') as f:
+            f.write(today_str)
+
+
+def show_weather_widget():
+    """Widget pro stahování srážek z meteostanic v sidebaru"""
+    from datetime import date
+    from utils.agdata_api import get_api_token
+
+    # Zkontrolovat, zda je API token nastaven
+    if not get_api_token():
+        return
+
+    dm = get_data_manager()
+    businesses = dm.get_businesses()
+
+    # Najít podniky s nastaveným sensor_addr
+    if 'sensor_addr' not in businesses.columns:
+        return
+
+    businesses_with_sensor = businesses[
+        businesses['sensor_addr'].notna() &
+        (businesses['sensor_addr'] != '')
+    ]
+
+    if businesses_with_sensor.empty:
+        return
+
+    # Automatické stažení (16:00 nebo catch-up)
+    check_auto_fetch()
+
+    st.markdown("**Meteostanice**")
+
+    # Získat dnešní data pro zobrazení
+    srazky_df = dm.get_sbernasrazky()
+    today_str = date.today().strftime('%Y-%m-%d')
+
+    for _, biz in businesses_with_sensor.iterrows():
+        sensor_addr = biz['sensor_addr']
+        biz_name = biz['nazev']
+        biz_id = int(biz['id'])
+
+        # Zjistit, zda existuje dnešní záznam
+        today_record = srazky_df[
+            (srazky_df['PodnikID'] == biz_id) &
+            (srazky_df['Datum'].astype(str) == today_str)
+        ]
+
+        with st.expander(f"{biz_name}", expanded=False):
+            # Zobrazit dnešní hodnotu, pokud existuje
+            if not today_record.empty:
+                rain_val = today_record.iloc[0]['Objem']
+                st.metric("Dnešní srážky", f"{rain_val:.1f} mm")
+
+            # Tlačítko pro manuální stažení a uložení
+            if st.button(f"Stáhnout a uložit", key=f"fetch_save_{biz_id}"):
+                with st.spinner("Stahuji..."):
+                    success, msg, rain = fetch_and_save_rain(biz_id, sensor_addr, dm)
+
+                if success:
+                    st.toast(msg, icon="✅")
+                else:
+                    st.toast(msg, icon="❌")
+
+                # Refresh po 2 sekundách
+                import time
+                time.sleep(2)
+                st.rerun()
+
+
 def show_sidebar():
     """Zobrazí boční menu"""
     with st.sidebar:
@@ -111,6 +286,11 @@ def show_sidebar():
             if selected_name != st.session_state.selected_page:
                 st.session_state.selected_page = selected_name
                 st.rerun()
+
+        st.markdown("---")
+
+        # Widget pro stahování srážek z meteostanic
+        show_weather_widget()
 
         st.markdown("---")
 
