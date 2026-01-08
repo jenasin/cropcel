@@ -620,6 +620,60 @@ def show(data_manager, user, auth_manager):
                             use_container_width=True
                         )
 
+        # === TABULKA NABÍDEK PRO ROK ===
+        st.markdown("---")
+        st.subheader(f"🏷️ Nabídky pro rok {selected_year}")
+
+        # Načíst nabídky
+        nabidky_all = data_manager.load_csv('nabidky.csv', force_reload=True)
+
+        if not nabidky_all.empty and 'id' in display_df.columns:
+            # Filtrovat nabídky pro aktuální odpisy
+            odpis_ids = display_df['id'].tolist()
+            nabidky_rok = nabidky_all[nabidky_all['odpis_id'].isin(odpis_ids)].copy()
+
+            if not nabidky_rok.empty:
+                # Zajistit správné datové typy
+                nabidky_rok['nabidka_kc'] = pd.to_numeric(nabidky_rok['nabidka_kc'], errors='coerce').fillna(0)
+
+                # Přidat info o odpisu (poznámka a finální cena)
+                odpis_info = display_df[['id', 'poznamka', 'castka_kc', 'datum_smlouvy']].copy()
+                odpis_info.columns = ['odpis_id', 'plodina', 'finalni_cena', 'datum_prodeje']
+                nabidky_rok = nabidky_rok.merge(odpis_info, on='odpis_id', how='left')
+
+                # Seřadit podle data
+                nabidky_rok = nabidky_rok.sort_values('datum_nabidky', ascending=False)
+
+                # Vybrat sloupce pro zobrazení
+                display_nabidky = nabidky_rok[['datum_nabidky', 'plodina', 'odberatel', 'nabidka_kc', 'finalni_cena', 'poznamka']].copy()
+
+                st.dataframe(
+                    display_nabidky,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "datum_nabidky": st.column_config.DateColumn("Datum nabídky", format="YYYY-MM-DD"),
+                        "plodina": st.column_config.TextColumn("Plodina"),
+                        "odberatel": st.column_config.TextColumn("Odběratel"),
+                        "nabidka_kc": st.column_config.NumberColumn("Nabídka (Kč)", format="%,.0f"),
+                        "finalni_cena": st.column_config.NumberColumn("Finální cena (Kč)", format="%,.0f"),
+                        "poznamka": st.column_config.TextColumn("Poznámka"),
+                    }
+                )
+
+                # Souhrn nabídek
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.caption(f"Počet nabídek: {len(nabidky_rok)}")
+                with col2:
+                    st.caption(f"Průměrná nabídka: {nabidky_rok['nabidka_kc'].mean():,.0f} Kč")
+                with col3:
+                    st.caption(f"Počet odběratelů: {nabidky_rok['odberatel'].nunique()}")
+            else:
+                st.info("Žádné nabídky pro tento rok")
+        else:
+            st.info("Žádné nabídky k zobrazení")
+
         # === HISTORIE NABÍDEK ===
         st.markdown("---")
         st.subheader("📋 Historie nabídek")

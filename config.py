@@ -21,6 +21,7 @@ MENU_GROUPS = {
             'Podniky Tekro',
             'Pozemky Tekro',
             'Srážky Tekro',
+            'Přehled nabídek',
             'Přehled podniku',
             'Statistiky',
             'Odrůdy',
@@ -50,6 +51,7 @@ MENU_GROUPS = {
             'Podniky Tekro',
             'Pozemky Tekro',
             'Srážky Tekro',
+            'Přehled nabídek',
             'Přehled podniku',
             'Statistiky',
             'Odrůdy',
@@ -121,4 +123,5 @@ PAGE_FILES = {
     'Přehled Tekro': 'prehled_tekro',
     'Plodiny Tekro': 'plodiny_tekro',
     'Osevní plány Tekro': 'osevni_plany',
+    'Přehled nabídek': 'prehled_nabidek',
 }

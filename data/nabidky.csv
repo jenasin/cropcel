@@ -1,16 +1,34 @@
 id,odpis_id,datum_nabidky,nabidka_kc,odberatel,poznamka
 1,9,2025-01-05,1750000,Agrofert,První nabídka
-2,9,2025-01-10,1800000,Agrofert,Navýšená nabídka
-3,9,2025-01-12,1850000,Agrofert,Finální nabídka - akceptováno
-4,10,2025-02-10,1100000,ZZN Polabí,Úvodní nabídka
-5,10,2025-02-15,1150000,ZZN Polabí,Zvýšená nabídka
-6,10,2025-02-18,1200000,ZZN Polabí,Akceptováno
-7,11,2025-03-01,850000,Olma,První nabídka
-8,11,2025-03-05,900000,Olma,Druhá nabídka
-9,11,2025-03-08,950000,Olma,Akceptováno
-10,12,2025-03-25,1300000,Pekárny Praha,Úvodní nabídka
-11,12,2025-04-01,1350000,Pekárny Praha,Navýšení
-12,12,2025-04-03,1400000,Pekárny Praha,Finální cena
-13,13,2025-04-20,600000,Krmiva s.r.o.,První nabídka
-14,13,2025-04-28,650000,Krmiva s.r.o.,Druhá nabídka
-15,13,2025-04-30,680000,Krmiva s.r.o.,Akceptováno
+2,9,2025-01-08,1720000,ZZN Polabí,Konkurenční nabídka
+3,9,2025-01-10,1800000,Agrofert,Navýšená nabídka
+4,9,2025-01-12,1850000,Agrofert,Finální nabídka - akceptováno
+5,10,2025-02-10,1100000,ZZN Polabí,Úvodní nabídka
+6,10,2025-02-12,1080000,Soufflet,Konkurenční nabídka
+7,10,2025-02-15,1150000,ZZN Polabí,Zvýšená nabídka
+8,10,2025-02-18,1200000,ZZN Polabí,Akceptováno
+9,11,2025-03-01,850000,Olma,První nabídka
+10,11,2025-03-02,820000,ADM,Konkurenční nabídka
+11,11,2025-03-05,900000,Olma,Druhá nabídka
+12,11,2025-03-08,950000,Olma,Akceptováno
+13,12,2025-03-25,1300000,Pekárny Praha,Úvodní nabídka
+14,12,2025-03-28,1280000,Mlýny Vodňany,Konkurenční nabídka
+15,12,2025-04-01,1350000,Pekárny Praha,Navýšení
+16,12,2025-04-03,1400000,Pekárny Praha,Finální cena
+17,13,2025-04-20,600000,Krmiva s.r.o.,První nabídka
+18,13,2025-04-22,580000,Agro Jesenice,Konkurenční nabídka
+19,13,2025-04-25,620000,Krmiva s.r.o.,Navýšení
+20,13,2025-04-28,650000,Krmiva s.r.o.,Druhá nabídka
+21,13,2025-04-30,680000,Krmiva s.r.o.,Akceptováno
+22,14,2026-01-05,1800000,Agrofert,První nabídka pšenice 2026
+23,14,2026-01-08,1850000,Agrofert,Navýšená nabídka
+24,14,2026-01-10,1950000,Agrofert,Finální nabídka
+25,15,2026-01-20,1250000,ZZN Polabí,Nabídka ječmen
+26,15,2026-01-23,1300000,ZZN Polabí,Zvýšená nabídka
+27,15,2026-01-25,1350000,ZZN Polabí,Akceptováno
+28,16,2026-02-01,2000000,Olma,První nabídka řepka
+29,16,2026-02-03,2100000,Olma,Navýšená nabídka
+30,16,2026-02-05,2250000,Olma,Finální cena
+31,17,2026-02-15,800000,Krmiva s.r.o.,Nabídka kukuřice
+32,17,2026-02-18,850000,Krmiva s.r.o.,Navýšení
+33,17,2026-02-20,890000,Krmiva s.r.o.,Akceptováno

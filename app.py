@@ -390,6 +390,9 @@ def show_main_content():
     elif selected_page == 'Osevní plány Tekro':
         from page_modules import osevni_plany
         osevni_plany.show(get_data_manager(), st.session_state.user, get_auth_manager())
+    elif selected_page == 'Přehled nabídek':
+        from page_modules import prehled_nabidek
+        prehled_nabidek.show(get_data_manager(), st.session_state.user, get_auth_manager())
 
 
 def main():
